@@ -12,23 +12,24 @@ st.set_page_config(page_title="Project Portfolio | Executive View", page_icon="�
 st.markdown("""
 <style>
 :root { color-scheme: light; }
-.block-container { padding: 1.1rem 2rem 1rem 2rem; max-width: 1800px; }
-[data-testid="stHeader"] { background: rgba(255,255,255,0.94); }
+.block-container { padding: .35rem 1.1rem .25rem 1.1rem; max-width: 1900px; }
+[data-testid="stHeader"] { background: rgba(15,22,32,0.96); }
 [data-testid="stToolbar"] { right: 1rem; }
 footer {visibility: hidden;}
 #MainMenu {visibility: hidden;}
-.hero { background: linear-gradient(105deg,#10243A 0%,#183D5B 62%,#246A78 100%); padding: .58rem 1.15rem; border-radius: 9px; color: white; margin-bottom: 0.65rem; }
-.hero-kicker { display: none; }
-.hero-title { font-size: 1.12rem; font-weight: 650; line-height: 1.25; color: white; margin: 0; }
-.hero-sub { display: none; }
-.kpi { background: #FFFFFF; border: 1px solid #DFE7EE; border-radius: 14px; padding: .78rem 1rem .8rem 1rem; min-height: 95px; box-shadow: 0 3px 12px rgba(16,36,58,.045); }
+.hero { background: linear-gradient(105deg,#10243A 0%,#183D5B 65%,#246A78 100%); padding: .48rem 1rem; border-radius: 8px; color: white; margin-bottom: .38rem; }
+.hero-kicker { display:none; }
+.hero-title { font-size: 1.12rem; font-weight: 700; line-height: 1.15; color: white !important; margin: 0; }
+.hero-sub { display:none; }
+.kpi { background: #FFFFFF; border: 1px solid #DFE7EE; border-radius: 8px; padding: .36rem .7rem; min-height: 60px; box-shadow: 0 2px 6px rgba(16,36,58,.035); }
 .kpi-label { font-size: .76rem; font-weight: 650; color: #5A6B7A; letter-spacing: .025em; }
-.kpi-value { font-size: 1.55rem; font-weight: 760; color: #10243A; margin-top: .22rem; line-height: 1.15; }
-.kpi-foot { font-size: .72rem; color: #7B8A98; margin-top: .25rem; }
-.chart-title { font-size: 1rem; font-weight: 720; color: #183247; padding: .15rem 0 .1rem 0; }
-.chart-sub { color: #728191; font-size: .76rem; margin-bottom: .15rem; }
+.kpi-value { font-size: 1.18rem; font-weight: 760; color: #10243A !important; margin-top: .1rem; line-height: 1.08; }
+.kpi-foot { display:none; }
+.chart-title { font-size: .88rem; font-weight: 720; color: #EAF2F8 !important; padding: 0; }
+.chart-sub { color: #AFC2D1 !important; font-size: .66rem; margin-bottom: 0; }
 .footer-note { color: #7A8794; font-size: .68rem; text-align: right; padding-top: .2rem; }
-div[data-testid="stPlotlyChart"] { border: 1px solid #E5EBF0; border-radius: 13px; background: white; padding: .25rem .3rem 0 .3rem; box-shadow: 0 3px 12px rgba(16,36,58,.035); }
+div[data-testid="stPlotlyChart"] { border: 1px solid #314456; border-radius: 8px; background: #FFFFFF; padding: 0; box-shadow: none; margin-bottom: .12rem; }
+[data-testid="stVerticalBlock"] { gap: .28rem; }
 @media (max-width: 900px) { .block-container { padding: .7rem .8rem; } .hero-title {font-size:1.4rem;} .kpi-value {font-size:1.25rem;} }
 </style>
 """, unsafe_allow_html=True)
@@ -166,7 +167,7 @@ total_spent = projects["Cumulative Expenditure (₹)"].fillna(0).sum()
 util = total_spent / total_budget if total_budget else None
 overspent = projects[projects["Cumulative Expenditure (₹)"].fillna(0) > projects["Sanctioned Budget (₹)"].fillna(0)]
 
-st.markdown("""
+st.markdown(f"""
 <div class="hero">
   <div class="hero-title">Overview of ANRF-PAIR Projects under COEP</div>
 </div>
@@ -182,22 +183,16 @@ with k2: kpi("CUMULATIVE EXPENDITURE", f"₹{total_spent/100000:,.2f} L", "Repor
 with k3: kpi("PORTFOLIO UTILIZATION", f"{util:.1%}" if util is not None else "—", "Spend as a share of budget")
 with k4: kpi("PROJECTS IN PORTFOLIO", f"{projects['Project UID'].nunique()} / 9", "UID1 through UID9")
 
-if warnings:
-    with st.expander("Data validation alerts", expanded=False):
-        for warning in warnings: st.warning(warning)
-if len(overspent):
-    labels = ", ".join(overspent["Project UID"].tolist())
-    st.warning(f"Budget attention required: cumulative expenditure exceeds sanctioned budget for {labels}.")
 
 # Chart styling helpers.
 def polish(fig, height=295):
-    fig.update_layout(template="plotly_white", height=height, margin=dict(l=16, r=16, t=18, b=12),
-                      font=dict(family="Arial, sans-serif", size=11, color="#435466"),
-                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                      legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0, font=dict(size=10)),
+    fig.update_layout(template="plotly_white", height=height, margin=dict(l=10, r=14, t=24, b=22),
+                      font=dict(family="Arial, sans-serif", size=10, color="#26394A"),
+                      paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
+                      legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=9, color="#26394A")),
                       hoverlabel=dict(bgcolor="#10243A", font_color="white"))
-    fig.update_xaxes(showgrid=False, zeroline=False, linecolor="#DCE4EA", tickfont=dict(size=10))
-    fig.update_yaxes(gridcolor="#EAF0F4", zeroline=False, tickfont=dict(size=10))
+    fig.update_xaxes(showgrid=False, zeroline=False, linecolor="#DCE4EA", tickfont=dict(size=9, color="#34495E"), title_font=dict(size=9, color="#34495E"))
+    fig.update_yaxes(gridcolor="#EAF0F4", zeroline=False, tickfont=dict(size=9, color="#34495E"), title_font=dict(size=9, color="#34495E"))
     return fig
 
 # Two compact rows of visuals; no data tables or long-form detail sections.
@@ -208,9 +203,9 @@ with left:
     budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
     fig = px.bar(budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text_auto=".1f",
                  color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD}, category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
-    fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0)
+    fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=9))
     fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.28, bargroupgap=.08)
-    polish(fig, 300)
+    polish(fig, 205)
     fig.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
 
@@ -220,11 +215,11 @@ with right:
     util_colors = ["#D97757" if x > 100 else TEAL if x >= 70 else BLUE for x in util_plot["Utilization (%)"]]
     fig2 = go.Figure()
     fig2.add_trace(go.Bar(x=util_plot["Utilization (%)"], y=util_plot["Project UID"], orientation="h", marker_color=util_colors,
-                          text=[f"{x:.0f}%" for x in util_plot["Utilization (%)"]], textposition="outside", cliponaxis=False,
+                          text=[f"{x:.0f}%" for x in util_plot["Utilization (%)"]], textposition="outside", cliponaxis=False, textfont=dict(color="#26394A", size=9),
                           hovertemplate="%{y}<br>Utilization: %{x:.1f}%<extra></extra>"))
     fig2.add_vline(x=100, line_dash="dash", line_color="#9AA8B4", line_width=1.5, annotation_text="100% budget", annotation_position="top")
-    fig2.update_layout(xaxis_title="Utilization (%)", yaxis_title="", showlegend=False, margin=dict(l=12,r=45,t=25,b=10))
-    polish(fig2, 300)
+    fig2.update_layout(xaxis_title="Utilization (%)", yaxis_title="", showlegend=False, margin=dict(l=8,r=32,t=20,b=20))
+    polish(fig2, 205)
     fig2.update_xaxes(range=[0, max(110, (util_plot["Utilization (%)"].max() * 1.18 if len(util_plot) else 110))])
     st.plotly_chart(fig2, use_container_width=True, config=PLOT_CONFIG)
 
@@ -242,8 +237,8 @@ with left2:
                                 marker=dict(colors=[BLUE, TEAL, GOLD, "#8D83B8", "#6B879B", "#D18B73"], line=dict(color="white", width=2)),
                                 textinfo="percent", textposition="inside", hovertemplate="%{label}<br>₹%{value:,.0f}<br>%{percent}<extra></extra>"))
         fig3.add_annotation(text=f"₹{eh['Spent (₹)'].sum()/100000:,.1f}L<br><span style='font-size:10px'>TOTAL SPEND</span>", showarrow=False, font=dict(size=19, color=NAVY))
-        fig3.update_layout(showlegend=True, legend=dict(orientation="v", yanchor="middle", y=.5, xanchor="left", x=1.02, font=dict(size=10)))
-        polish(fig3, 300)
+        fig3.update_layout(showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=9, color="#26394A")))
+        polish(fig3, 205)
         st.plotly_chart(fig3, use_container_width=True, config=PLOT_CONFIG)
     else:
         st.info("No positive expense-head totals found in the source workbook.")
@@ -257,9 +252,9 @@ with right2:
     fig4 = px.bar(act_long, x="Project UID", y="Count", color="Activity type", barmode="group", text_auto=True,
                   color_discrete_map={"Activities conducted": TEAL, "Activities attended": "#8D83B8"},
                   category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
-    fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0)
+    fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=9))
     fig4.update_layout(xaxis_title="", yaxis_title="Activity count", bargap=.3)
-    polish(fig4, 300)
+    polish(fig4, 205)
     fig4.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig4, use_container_width=True, config=PLOT_CONFIG)
 
