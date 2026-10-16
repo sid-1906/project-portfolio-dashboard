@@ -205,7 +205,7 @@ with left:
                  color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD}, category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
     fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=9))
     fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.28, bargroupgap=.08)
-    polish(fig, 205)
+    polish(fig, 300)
     fig.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
 
@@ -219,7 +219,7 @@ with right:
                           hovertemplate="%{y}<br>Utilization: %{x:.1f}%<extra></extra>"))
     fig2.add_vline(x=100, line_dash="dash", line_color="#9AA8B4", line_width=1.5, annotation_text="100% budget", annotation_position="top")
     fig2.update_layout(xaxis_title="Utilization (%)", yaxis_title="", showlegend=False, margin=dict(l=8,r=32,t=20,b=20))
-    polish(fig2, 205)
+    polish(fig2, 300)
     fig2.update_xaxes(range=[0, max(110, (util_plot["Utilization (%)"].max() * 1.18 if len(util_plot) else 110))])
     st.plotly_chart(fig2, use_container_width=True, config=PLOT_CONFIG)
 
@@ -238,7 +238,7 @@ with left2:
                                 textinfo="percent", textposition="inside", hovertemplate="%{label}<br>₹%{value:,.0f}<br>%{percent}<extra></extra>"))
         fig3.add_annotation(text=f"₹{eh['Spent (₹)'].sum()/100000:,.1f}L<br><span style='font-size:10px'>TOTAL SPEND</span>", showarrow=False, font=dict(size=19, color=NAVY))
         fig3.update_layout(showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=9, color="#26394A")))
-        polish(fig3, 205)
+        polish(fig3, 300)
         st.plotly_chart(fig3, use_container_width=True, config=PLOT_CONFIG)
     else:
         st.info("No positive expense-head totals found in the source workbook.")
@@ -254,7 +254,7 @@ with right2:
                   category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
     fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=9))
     fig4.update_layout(xaxis_title="", yaxis_title="Activity count", bargap=.3)
-    polish(fig4, 205)
+    polish(fig4, 300)
     fig4.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig4, use_container_width=True, config=PLOT_CONFIG)
 
