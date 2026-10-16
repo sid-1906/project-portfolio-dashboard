@@ -14,19 +14,19 @@ st.markdown("""
 :root { color-scheme: light; }
 .stApp { background: #F3F6FA; color: #1C2D3D; }
 .block-container {
-    padding: 1.05rem 1.35rem .45rem 1.35rem !important;
+    padding: .85rem 1.35rem .35rem 1.35rem !important;
     max-width: 1920px;
 }
-[data-testid="stHeader"] { background: rgba(243,246,250,.96); }
+[data-testid="stHeader"] { display: none; }
 [data-testid="stToolbar"] { right: 1rem; }
 footer, #MainMenu { visibility: hidden; }
 
 .hero {
     background: linear-gradient(110deg, #10243A 0%, #183D5B 62%, #246A78 100%);
-    padding: .85rem 1.25rem;
+    padding: .72rem 1.2rem;
     border-radius: 12px;
     color: white;
-    margin-bottom: .65rem;
+    margin-bottom: .48rem;
     box-shadow: 0 5px 16px rgba(16,36,58,.12);
 }
 .hero-title {
@@ -48,8 +48,8 @@ footer, #MainMenu { visibility: hidden; }
     border: 1px solid #DCE5ED;
     border-top: 3px solid #3E78A8;
     border-radius: 10px;
-    padding: .65rem .85rem;
-    min-height: 82px;
+    padding: .52rem .8rem;
+    min-height: 74px;
     box-shadow: 0 2px 8px rgba(25,49,70,.045);
 }
 .kpi-label {
@@ -70,13 +70,13 @@ footer, #MainMenu { visibility: hidden; }
     font-size: .96rem;
     font-weight: 750;
     color: #183D5B !important;
-    padding: .05rem .1rem .08rem .1rem;
+    padding: .02rem .1rem .04rem .1rem;
 }
 .chart-sub {
     color: #687C8E !important;
     font-size: .73rem;
     line-height: 1.3;
-    margin-bottom: .18rem;
+    margin-bottom: .08rem;
 }
 .footer-note {
     color: #748391;
@@ -92,8 +92,8 @@ div[data-testid="stPlotlyChart"] {
     box-shadow: 0 2px 8px rgba(25,49,70,.04);
     margin-bottom: .25rem;
 }
-[data-testid="stVerticalBlock"] { gap: .38rem; }
-[data-testid="stHorizontalBlock"] { gap: .85rem; }
+[data-testid="stVerticalBlock"] { gap: .28rem; }
+[data-testid="stHorizontalBlock"] { gap: .7rem; }
 [data-testid="stPlotlyChart"] iframe { display: block; }
 @media (max-width: 900px) {
     .block-container { padding: .8rem .65rem .25rem .65rem !important; }
@@ -258,7 +258,7 @@ with k4: kpi("PROJECTS IN PORTFOLIO", f"{projects['Project UID'].nunique()} / 9"
 
 # Chart styling helpers.
 def polish(fig, height=295):
-    fig.update_layout(template="plotly_white", height=height, margin=dict(l=10, r=12, t=24, b=22),
+    fig.update_layout(template="plotly_white", height=height, margin=dict(l=10, r=12, t=18, b=18),
                       font=dict(family="Arial, sans-serif", size=11, color="#26394A"),
                       paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
                       legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=10, color="#26394A")),
@@ -277,7 +277,7 @@ with left:
                  color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD}, category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
     fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=10))
     fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.28, bargroupgap=.08)
-    polish(fig, 285)
+    polish(fig, 235)
     fig.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
 
@@ -291,7 +291,7 @@ with right:
                           hovertemplate="%{y}<br>Utilization: %{x:.1f}%<extra></extra>"))
     fig2.add_vline(x=100, line_dash="dash", line_color="#9AA8B4", line_width=1.5, annotation_text="100% budget", annotation_position="top")
     fig2.update_layout(xaxis_title="Utilization (%)", yaxis_title="", showlegend=False, margin=dict(l=8,r=32,t=20,b=20))
-    polish(fig2, 285)
+    polish(fig2, 235)
     fig2.update_xaxes(range=[0, max(110, (util_plot["Utilization (%)"].max() * 1.18 if len(util_plot) else 110))])
     st.plotly_chart(fig2, use_container_width=True, config=PLOT_CONFIG)
 
@@ -310,7 +310,7 @@ with left2:
                                 textinfo="percent", textposition="inside", hovertemplate="%{label}<br>₹%{value:,.0f}<br>%{percent}<extra></extra>"))
         fig3.add_annotation(text=f"₹{eh['Spent (₹)'].sum()/100000:,.1f}L<br><span style='font-size:10px'>TOTAL SPEND</span>", showarrow=False, font=dict(size=19, color=NAVY))
         fig3.update_layout(showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=10, color="#26394A")))
-        polish(fig3, 285)
+        polish(fig3, 235)
         st.plotly_chart(fig3, use_container_width=True, config=PLOT_CONFIG)
     else:
         st.info("No positive expense-head totals found in the source workbook.")
@@ -326,7 +326,7 @@ with right2:
                   category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
     fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=10))
     fig4.update_layout(xaxis_title="", yaxis_title="Activity count", bargap=.3)
-    polish(fig4, 285)
+    polish(fig4, 235)
     fig4.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig4, use_container_width=True, config=PLOT_CONFIG)
 
