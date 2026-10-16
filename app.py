@@ -17,10 +17,10 @@ st.markdown("""
 [data-testid="stToolbar"] { right: 1rem; }
 footer {visibility: hidden;}
 #MainMenu {visibility: hidden;}
-.hero { background: linear-gradient(115deg,#10243A 0%,#183D5B 62%,#246A78 100%); padding: 1.1rem 1.45rem; border-radius: 16px; color: white; margin-bottom: 0.9rem; }
-.hero-kicker { font-size: .72rem; letter-spacing: .16em; font-weight: 700; color: #9BD9D2; text-transform: uppercase; margin-bottom: .28rem; }
-.hero-title { font-size: 1.8rem; font-weight: 750; line-height: 1.1; color: white; margin: 0; }
-.hero-sub { font-size: .88rem; color: #D8E5EE; margin-top: .4rem; }
+.hero { background: linear-gradient(105deg,#10243A 0%,#183D5B 62%,#246A78 100%); padding: .58rem 1.15rem; border-radius: 9px; color: white; margin-bottom: 0.65rem; }
+.hero-kicker { display: none; }
+.hero-title { font-size: 1.12rem; font-weight: 650; line-height: 1.25; color: white; margin: 0; }
+.hero-sub { display: none; }
 .kpi { background: #FFFFFF; border: 1px solid #DFE7EE; border-radius: 14px; padding: .78rem 1rem .8rem 1rem; min-height: 95px; box-shadow: 0 3px 12px rgba(16,36,58,.045); }
 .kpi-label { font-size: .76rem; font-weight: 650; color: #5A6B7A; letter-spacing: .025em; }
 .kpi-value { font-size: 1.55rem; font-weight: 760; color: #10243A; margin-top: .22rem; line-height: 1.15; }
@@ -166,11 +166,9 @@ total_spent = projects["Cumulative Expenditure (₹)"].fillna(0).sum()
 util = total_spent / total_budget if total_budget else None
 overspent = projects[projects["Cumulative Expenditure (₹)"].fillna(0) > projects["Sanctioned Budget (₹)"].fillna(0)]
 
-st.markdown(f"""
+st.markdown("""
 <div class="hero">
-  <div class="hero-kicker">Executive portfolio review · UID1–UID9</div>
-  <div class="hero-title">Project Portfolio Overview</div>
-  <div class="hero-sub">Financial utilization · Expense allocation · Activity delivery &nbsp;|&nbsp; Cumulative values from the latest approved workbook</div>
+  <div class="hero-title">Overview of ANRF-PAIR Projects under COEP</div>
 </div>
 """, unsafe_allow_html=True)
 
