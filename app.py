@@ -12,25 +12,25 @@ st.set_page_config(page_title="Project Portfolio | Executive View", page_icon="�
 st.markdown("""
 <style>
 :root { color-scheme: light; }
-.block-container { padding: .16rem .65rem 0 .65rem; max-width: 1900px; }
+.block-container { padding: 2.55rem 1rem .12rem 1rem !important; max-width: 1900px; }
 [data-testid="stHeader"] { background: rgba(15,22,32,0.96); }
 [data-testid="stToolbar"] { right: 1rem; }
 footer {visibility: hidden;}
 #MainMenu {visibility: hidden;}
-.hero { background: linear-gradient(105deg,#10243A 0%,#183D5B 65%,#246A78 100%); padding: .28rem .8rem; border-radius: 6px; color: white; margin-bottom: .18rem; }
+.hero { background: linear-gradient(105deg,#10243A 0%,#183D5B 65%,#246A78 100%); padding: .34rem .9rem; border-radius: 7px; color: white; margin-bottom: .22rem; }
 .hero-kicker { display:none; }
-.hero-title { font-size: .98rem; font-weight: 700; line-height: 1.1; color: #FFFFFF !important; margin: 0; }
+.hero-title { font-size: 1rem; font-weight: 700; line-height: 1.12; color: white !important; margin: 0; }
 .hero-sub { display:none; }
-.kpi { background: #173B55; border: 1px solid #31566F; border-radius: 7px; padding: .30rem .62rem; min-height: 48px; box-shadow: none; }
-.kpi-label { font-size: .64rem; font-weight: 650; color: #C8D8E4 !important; letter-spacing: .035em; line-height: 1.05; }
-.kpi-value { font-size: 1.02rem; font-weight: 760; color: #FFFFFF !important; margin-top: .08rem; line-height: 1.02; }
+.kpi { background: #173B55; border: 1px solid #2A536D; border-radius: 7px; padding: .30rem .65rem; min-height: 48px; box-shadow: none; }
+.kpi-label { font-size: .68rem; font-weight: 650; color: #D7E7F1 !important; letter-spacing: .025em; }
+.kpi-value { font-size: 1.08rem; font-weight: 760; color: #FFFFFF !important; margin-top: .08rem; line-height: 1.05; }
 .kpi-foot { display:none; }
-.chart-title { font-size: .78rem; font-weight: 720; color: #EAF2F8 !important; padding: 0; line-height: 1.05; }
-.chart-sub { color: #AFC2D1 !important; font-size: .59rem; margin-bottom: 0; line-height: 1.05; }
-.footer-note { color: #7A8794; font-size: .68rem; text-align: right; padding-top: .05rem; }
+.chart-title { font-size: .88rem; font-weight: 720; color: #EAF2F8 !important; padding: 0; }
+.chart-sub { color: #AFC2D1 !important; font-size: .66rem; margin-bottom: 0; }
+.footer-note { color: #7A8794; font-size: .68rem; text-align: right; padding-top: .2rem; }
 div[data-testid="stPlotlyChart"] { border: 1px solid #314456; border-radius: 8px; background: #FFFFFF; padding: 0; box-shadow: none; margin-bottom: .12rem; }
-[data-testid="stVerticalBlock"] { gap: .16rem; }\n[data-testid="stHorizontalBlock"] { gap: .65rem; }\n[data-testid="stMarkdownContainer"] p { margin-bottom: 0 !important; }\n[data-testid="stPlotlyChart"] iframe { max-height: 170px; }
-@media (max-width: 900px) { .block-container { padding: .7rem .8rem; } .hero-title {font-size:1.4rem;} .kpi-value {font-size:1.25rem;} }
+[data-testid="stVerticalBlock"] { gap: .20rem; }\n[data-testid="stHorizontalBlock"] { gap: .65rem; }\n[data-testid="stPlotlyChart"] iframe { display: block; }
+@media (max-width: 900px) { .block-container { padding: 2.3rem .65rem .2rem .65rem !important; } .hero-title {font-size:.95rem;} .kpi-value {font-size:1rem;} }
 </style>
 """, unsafe_allow_html=True)
 
@@ -186,7 +186,7 @@ with k4: kpi("PROJECTS IN PORTFOLIO", f"{projects['Project UID'].nunique()} / 9"
 
 # Chart styling helpers.
 def polish(fig, height=295):
-    fig.update_layout(template="plotly_white", height=height, margin=dict(l=10, r=14, t=24, b=22),
+    fig.update_layout(template="plotly_white", height=height, margin=dict(l=8, r=10, t=16, b=16),
                       font=dict(family="Arial, sans-serif", size=10, color="#26394A"),
                       paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
                       legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=9, color="#26394A")),
@@ -205,7 +205,7 @@ with left:
                  color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD}, category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
     fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=9))
     fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.28, bargroupgap=.08)
-    polish(fig, 165)
+    polish(fig, 205)
     fig.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
 
@@ -219,7 +219,7 @@ with right:
                           hovertemplate="%{y}<br>Utilization: %{x:.1f}%<extra></extra>"))
     fig2.add_vline(x=100, line_dash="dash", line_color="#9AA8B4", line_width=1.5, annotation_text="100% budget", annotation_position="top")
     fig2.update_layout(xaxis_title="Utilization (%)", yaxis_title="", showlegend=False, margin=dict(l=8,r=32,t=20,b=20))
-    polish(fig2, 165)
+    polish(fig2, 205)
     fig2.update_xaxes(range=[0, max(110, (util_plot["Utilization (%)"].max() * 1.18 if len(util_plot) else 110))])
     st.plotly_chart(fig2, use_container_width=True, config=PLOT_CONFIG)
 
@@ -238,7 +238,7 @@ with left2:
                                 textinfo="percent", textposition="inside", hovertemplate="%{label}<br>₹%{value:,.0f}<br>%{percent}<extra></extra>"))
         fig3.add_annotation(text=f"₹{eh['Spent (₹)'].sum()/100000:,.1f}L<br><span style='font-size:10px'>TOTAL SPEND</span>", showarrow=False, font=dict(size=19, color=NAVY))
         fig3.update_layout(showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=9, color="#26394A")))
-        polish(fig3, 165)
+        polish(fig3, 205)
         st.plotly_chart(fig3, use_container_width=True, config=PLOT_CONFIG)
     else:
         st.info("No positive expense-head totals found in the source workbook.")
@@ -254,7 +254,7 @@ with right2:
                   category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
     fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=9))
     fig4.update_layout(xaxis_title="", yaxis_title="Activity count", bargap=.3)
-    polish(fig4, 165)
+    polish(fig4, 205)
     fig4.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig4, use_container_width=True, config=PLOT_CONFIG)
 
