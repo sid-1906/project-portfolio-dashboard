@@ -12,96 +12,25 @@ st.set_page_config(page_title="Project Portfolio | Executive View", page_icon="�
 st.markdown("""
 <style>
 :root { color-scheme: light; }
-.stApp { background: #F3F6FA; color: #1C2D3D; }
-.block-container {
-    padding: .85rem 1.35rem .35rem 1.35rem !important;
-    max-width: 1920px;
-}
-[data-testid="stHeader"] { display: none; }
+.block-container { padding: 2.55rem 1rem .12rem 1rem !important; max-width: 1900px; }
+[data-testid="stHeader"] { background: rgba(15,22,32,0.96); }
 [data-testid="stToolbar"] { right: 1rem; }
-footer, #MainMenu { visibility: hidden; }
-
-.hero {
-    background: linear-gradient(110deg, #10243A 0%, #183D5B 62%, #246A78 100%);
-    padding: .72rem 1.2rem;
-    border-radius: 12px;
-    color: white;
-    margin-bottom: .48rem;
-    box-shadow: 0 5px 16px rgba(16,36,58,.12);
-}
-.hero-title {
-    font-size: 1.45rem;
-    font-weight: 750;
-    line-height: 1.18;
-    color: #FFFFFF !important;
-    margin: 0;
-    letter-spacing: -.015em;
-}
-.hero-sub {
-    font-size: .82rem;
-    line-height: 1.35;
-    color: #D7E7F1 !important;
-    margin-top: .28rem;
-}
-.kpi {
-    background: #FFFFFF;
-    border: 1px solid #DCE5ED;
-    border-top: 3px solid #3E78A8;
-    border-radius: 10px;
-    padding: .52rem .8rem;
-    min-height: 74px;
-    box-shadow: 0 2px 8px rgba(25,49,70,.045);
-}
-.kpi-label {
-    font-size: .70rem;
-    font-weight: 700;
-    color: #607386 !important;
-    letter-spacing: .045em;
-}
-.kpi-value {
-    font-size: 1.35rem;
-    font-weight: 780;
-    color: #183D5B !important;
-    margin-top: .18rem;
-    line-height: 1.12;
-}
-.kpi-foot { display: none; }
-.chart-title {
-    font-size: .96rem;
-    font-weight: 750;
-    color: #183D5B !important;
-    padding: .02rem .1rem .04rem .1rem;
-}
-.chart-sub {
-    color: #687C8E !important;
-    font-size: .73rem;
-    line-height: 1.3;
-    margin-bottom: .08rem;
-}
-.footer-note {
-    color: #748391;
-    font-size: .68rem;
-    text-align: right;
-    padding-top: .2rem;
-}
-div[data-testid="stPlotlyChart"] {
-    border: 1px solid #DCE5ED;
-    border-radius: 10px;
-    background: #FFFFFF;
-    padding: .15rem;
-    box-shadow: 0 2px 8px rgba(25,49,70,.04);
-    margin-bottom: .25rem;
-}
-[data-testid="stVerticalBlock"] { gap: .28rem; }
-[data-testid="stHorizontalBlock"] { gap: .7rem; }
-[data-testid="stPlotlyChart"] iframe { display: block; }
-@media (max-width: 900px) {
-    .block-container { padding: .8rem .65rem .25rem .65rem !important; }
-    .hero-title { font-size: 1.12rem; }
-    .kpi { padding: .5rem .6rem; min-height: 72px; }
-    .kpi-value { font-size: 1.05rem; }
-    .chart-title { font-size: .88rem; }
-}
+footer {visibility: hidden;}
+#MainMenu {visibility: hidden;}
+.hero { background: linear-gradient(105deg,#10243A 0%,#183D5B 65%,#246A78 100%); padding: .34rem .9rem; border-radius: 7px; color: white; margin-bottom: .22rem; }
+.hero-kicker { display:none; }
+.hero-title { font-size: 1rem; font-weight: 700; line-height: 1.12; color: white !important; margin: 0; }
+.hero-sub { display:none; }
+.kpi { background: #173B55; border: 1px solid #2A536D; border-radius: 7px; padding: .30rem .65rem; min-height: 48px; box-shadow: none; }
+.kpi-label { font-size: .68rem; font-weight: 650; color: #D7E7F1 !important; letter-spacing: .025em; }
+.kpi-value { font-size: 1.08rem; font-weight: 760; color: #FFFFFF !important; margin-top: .08rem; line-height: 1.05; }
+.kpi-foot { display:none; }
+.chart-title { font-size: .88rem; font-weight: 720; color: #EAF2F8 !important; padding: 0; }
+.chart-sub { color: #AFC2D1 !important; font-size: .66rem; margin-bottom: 0; }
+.footer-note { color: #7A8794; font-size: .68rem; text-align: right; padding-top: .2rem; }
+div[data-testid="stPlotlyChart"] { border: 1px solid #314456; border-radius: 8px; background: #FFFFFF; padding: 0; box-shadow: none; margin-bottom: .12rem; }
+[data-testid="stVerticalBlock"] { gap: .20rem; }\n[data-testid="stHorizontalBlock"] { gap: .65rem; }\n[data-testid="stPlotlyChart"] iframe { display: block; }
+@media (max-width: 900px) { .block-container { padding: 2.3rem .65rem .2rem .65rem !important; } .hero-title {font-size:.95rem;} .kpi-value {font-size:1rem;} }
 </style>
 """, unsafe_allow_html=True)
 
@@ -190,18 +119,23 @@ if "workbook_bytes" not in st.session_state:
         with open(os.path.join(os.path.dirname(__file__), "Project Info.xlsx"), "rb") as f:
             st.session_state.workbook_bytes = f.read()
 
+
+
+# Administrator controls stay inside the collapsed sidebar for a clean presentation view.
 with st.sidebar:
     st.markdown("### Administrator access")
     st.caption("The presentation dashboard is read-only for visitors.")
-    password = st.text_input("Administrator password", type="password")
+    password = st.text_input("Administrator password", type="password", key="admin_password")
     expected = st.secrets.get("ADMIN_PASSWORD", "") if hasattr(st, "secrets") else ""
     is_admin = bool(expected and password and password == expected)
-    if is_admin: st.success("Administrator access enabled")
-    elif not expected: st.warning("Set ADMIN_PASSWORD in deployment secrets to enable administration.")
+    if is_admin:
+        st.success("Administrator access enabled")
+    elif not expected:
+        st.warning("Set ADMIN_PASSWORD in deployment secrets to enable administration.")
     with st.expander("Upload updated workbook", expanded=False):
         st.caption("Upload the standard Excel workbook containing UID1–UID9 sheets.")
         uploaded = st.file_uploader("Project Info.xlsx", type=["xlsx"], key="admin_workbook") if is_admin else None
-        if uploaded and st.button("Validate and publish", type="primary"):
+        if uploaded and st.button("Validate and publish", type="primary", key="publish_workbook"):
             raw = uploaded.getvalue()
             try:
                 new_projects, *_ = parse_workbook(raw)
@@ -217,7 +151,8 @@ with st.sidebar:
                             st.session_state.workbook_bytes = raw
                             st.success("Workbook validated and saved.")
                             st.rerun()
-                        else: st.error(msg)
+                        else:
+                            st.error(msg)
             except Exception as e:
                 st.error(f"Workbook validation failed. Existing dashboard was not changed. Details: {e}")
 
@@ -240,8 +175,7 @@ overspent = projects[projects["Cumulative Expenditure (₹)"].fillna(0) > projec
 
 st.markdown(f"""
 <div class="hero">
-  <div class="hero-title">ANRF-PAIR Project Portfolio</div>
-  <div class="hero-sub">COEP · Executive overview of budget, expenditure, utilization and activity delivery</div>
+  <div class="hero-title">Overview of ANRF-PAIR Projects under COEP</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -258,26 +192,26 @@ with k4: kpi("PROJECTS IN PORTFOLIO", f"{projects['Project UID'].nunique()} / 9"
 
 # Chart styling helpers.
 def polish(fig, height=295):
-    fig.update_layout(template="plotly_white", height=height, margin=dict(l=10, r=12, t=18, b=18),
-                      font=dict(family="Arial, sans-serif", size=11, color="#26394A"),
+    fig.update_layout(template="plotly_white", height=height, margin=dict(l=8, r=10, t=16, b=16),
+                      font=dict(family="Arial, sans-serif", size=10, color="#26394A"),
                       paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
-                      legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=10, color="#26394A")),
+                      legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=9, color="#26394A")),
                       hoverlabel=dict(bgcolor="#10243A", font_color="white"))
-    fig.update_xaxes(showgrid=False, zeroline=False, linecolor="#DCE4EA", tickfont=dict(size=10, color="#34495E"), title_font=dict(size=10, color="#34495E"))
-    fig.update_yaxes(gridcolor="#EAF0F4", zeroline=False, tickfont=dict(size=10, color="#34495E"), title_font=dict(size=10, color="#34495E"))
+    fig.update_xaxes(showgrid=False, zeroline=False, linecolor="#DCE4EA", tickfont=dict(size=9, color="#34495E"), title_font=dict(size=9, color="#34495E"))
+    fig.update_yaxes(gridcolor="#EAF0F4", zeroline=False, tickfont=dict(size=9, color="#34495E"), title_font=dict(size=9, color="#34495E"))
     return fig
 
 # Two compact rows of visuals; no data tables or long-form detail sections.
-left, right = st.columns([1.08, 1], gap="small")
+left, right = st.columns([1.18, 1], gap="medium")
 with left:
     st.markdown('<div class="chart-title">Budget vs. expenditure by project</div><div class="chart-sub">₹ lakh · compare approved allocation with cumulative spend</div>', unsafe_allow_html=True)
     budget_plot = projects.melt(id_vars=["Project UID"], value_vars=["Budget (₹ lakh)", "Spent (₹ lakh)"], var_name="Series", value_name="Amount")
     budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
     fig = px.bar(budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text_auto=".1f",
                  color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD}, category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
-    fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=10))
+    fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=9))
     fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.28, bargroupgap=.08)
-    polish(fig, 235)
+    polish(fig, 205)
     fig.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
 
@@ -287,15 +221,15 @@ with right:
     util_colors = ["#D97757" if x > 100 else TEAL if x >= 70 else BLUE for x in util_plot["Utilization (%)"]]
     fig2 = go.Figure()
     fig2.add_trace(go.Bar(x=util_plot["Utilization (%)"], y=util_plot["Project UID"], orientation="h", marker_color=util_colors,
-                          text=[f"{x:.0f}%" for x in util_plot["Utilization (%)"]], textposition="outside", cliponaxis=False, textfont=dict(color="#26394A", size=10),
+                          text=[f"{x:.0f}%" for x in util_plot["Utilization (%)"]], textposition="outside", cliponaxis=False, textfont=dict(color="#26394A", size=9),
                           hovertemplate="%{y}<br>Utilization: %{x:.1f}%<extra></extra>"))
     fig2.add_vline(x=100, line_dash="dash", line_color="#9AA8B4", line_width=1.5, annotation_text="100% budget", annotation_position="top")
     fig2.update_layout(xaxis_title="Utilization (%)", yaxis_title="", showlegend=False, margin=dict(l=8,r=32,t=20,b=20))
-    polish(fig2, 235)
+    polish(fig2, 205)
     fig2.update_xaxes(range=[0, max(110, (util_plot["Utilization (%)"].max() * 1.18 if len(util_plot) else 110))])
     st.plotly_chart(fig2, use_container_width=True, config=PLOT_CONFIG)
 
-left2, right2 = st.columns([1, 1.08], gap="small")
+left2, right2 = st.columns([1, 1.18], gap="medium")
 with left2:
     st.markdown('<div class="chart-title">Where the expenditure goes</div><div class="chart-sub">Share of reported cumulative spend by expense head</div>', unsafe_allow_html=True)
     if not expense_heads.empty and "Spent (₹)" in expense_heads:
@@ -309,8 +243,8 @@ with left2:
                                 marker=dict(colors=[BLUE, TEAL, GOLD, "#8D83B8", "#6B879B", "#D18B73"], line=dict(color="white", width=2)),
                                 textinfo="percent", textposition="inside", hovertemplate="%{label}<br>₹%{value:,.0f}<br>%{percent}<extra></extra>"))
         fig3.add_annotation(text=f"₹{eh['Spent (₹)'].sum()/100000:,.1f}L<br><span style='font-size:10px'>TOTAL SPEND</span>", showarrow=False, font=dict(size=19, color=NAVY))
-        fig3.update_layout(showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=10, color="#26394A")))
-        polish(fig3, 235)
+        fig3.update_layout(showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=9, color="#26394A")))
+        polish(fig3, 205)
         st.plotly_chart(fig3, use_container_width=True, config=PLOT_CONFIG)
     else:
         st.info("No positive expense-head totals found in the source workbook.")
@@ -324,9 +258,9 @@ with right2:
     fig4 = px.bar(act_long, x="Project UID", y="Count", color="Activity type", barmode="group", text_auto=True,
                   color_discrete_map={"Activities conducted": TEAL, "Activities attended": "#8D83B8"},
                   category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
-    fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=10))
+    fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=9))
     fig4.update_layout(xaxis_title="", yaxis_title="Activity count", bargap=.3)
-    polish(fig4, 235)
+    polish(fig4, 205)
     fig4.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig4, use_container_width=True, config=PLOT_CONFIG)
 
