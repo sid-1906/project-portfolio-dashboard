@@ -215,7 +215,7 @@ view = st.radio(
 )
 
 if view == "Portfolio overview":
-    st.markdown('<div class="chart-title">Budget vs. expenditure by project</div><div class="chart-sub">₹ lakh · compare approved allocation with cumulative spend</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-title">Budget vs. expenditure by project</div><div class="chart-sub">   </div>', unsafe_allow_html=True)
     budget_plot = projects.melt(id_vars=["Project UID"], value_vars=["Budget (₹ lakh)", "Spent (₹ lakh)"], var_name="Series", value_name="Amount")
     budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
     fig = px.bar(budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text_auto=".1f",
@@ -230,7 +230,7 @@ if view == "Portfolio overview":
 
     left, right = st.columns([1, 1], gap="medium")
     with left:
-        st.markdown('<div class="chart-title">Portfolio utilization by project</div><div class="chart-sub">Cumulative expenditure as a percentage of sanctioned budget</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-title">Portfolio utilization by project</div><div class="chart-sub">   </div>', unsafe_allow_html=True)
         util_plot = projects.dropna(subset=["Utilization (%)"]).sort_values("Utilization (%)", ascending=True)
         util_colors = ["#D97757" if x > 100 else TEAL if x >= 70 else BLUE for x in util_plot["Utilization (%)"]]
         fig2 = go.Figure()
@@ -247,7 +247,7 @@ if view == "Portfolio overview":
         st.plotly_chart(fig2, use_container_width=True, config=PLOT_CONFIG)
 
     with right:
-        st.markdown('<div class="chart-title">Where the expenditure goes</div><div class="chart-sub">Share of reported cumulative spend by expense head</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-title">Where the expenditure goes</div><div class="chart-sub">   </div>', unsafe_allow_html=True)
         if not expense_heads.empty and "Spent (₹)" in expense_heads:
             eh = expense_heads.copy()
             eh["Spent (₹)"] = pd.to_numeric(eh["Spent (₹)"], errors="coerce").fillna(0)
@@ -273,7 +273,7 @@ if view == "Portfolio overview":
             st.info("No positive expense-head totals found in the source workbook.")
 
 else:
-    st.markdown('<div class="chart-title">Activity delivery across projects</div><div class="chart-sub">Reported activity counts · conducted versus attended</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-title">Activity delivery across projects</div><div class="chart-sub">  </div>', unsafe_allow_html=True)
     cdf = conducted.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities conducted"}) if not conducted.empty else pd.DataFrame(columns=["Project UID", "Activities conducted"])
     adf = attended.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities attended"}) if not attended.empty else pd.DataFrame(columns=["Project UID", "Activities attended"])
     act = pd.DataFrame({"Project UID": [f"UID{i}" for i in range(1,10)]}).merge(cdf, on="Project UID", how="left").merge(adf, on="Project UID", how="left").fillna(0)
