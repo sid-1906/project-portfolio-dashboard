@@ -27,12 +27,17 @@ footer, #MainMenu { visibility:hidden; }
 .kpi-label {font-size:.72rem;color:#6B7890!important;font-weight:650;letter-spacing:.025em;}
 .kpi-value {font-size:1.42rem;font-weight:780;color:#12233F!important;margin-top:.24rem;line-height:1.12;}
 .kpi-foot {font-size:.68rem;color:#6B7890!important;margin-top:.18rem;}
-.chart-title {font-size:1rem;font-weight:750;color:#12233F!important;margin:.12rem 0 .12rem 0;}
-.chart-sub {font-size:.76rem;color:#6B7890!important;margin-bottom:.1rem;line-height:1.35;}
+.chart-title {font-size:1rem;font-weight:750;color:#12233F!important;margin:.45rem 0 .18rem 0;line-height:1.35;display:block;}
+.chart-sub {font-size:.76rem;color:#6B7890!important;margin-bottom:.35rem;line-height:1.45;display:block;}
 div[data-testid="stPlotlyChart"] {background:#FFFFFF;border:1px solid #E4EAF3;border-radius:12px;padding:.2rem;box-shadow:0 4px 14px rgba(32,60,100,.045);margin-bottom:.2rem;}
 .stButton>button {border-radius:8px;border:1px solid #D8E2EE;background:#FFFFFF;color:#17365E;font-weight:700;}
 [data-testid="stVerticalBlock"] {gap:.34rem;}\n.overview-divider {height:1px;background:#DCE5EF;margin:.5rem 0 .65rem 0;}\n.chart-title {margin-top:.18rem !important;}
 [data-testid="stHorizontalBlock"] {gap:.7rem;}
+div[role="radiogroup"] {background:#E7EEF7;border:1px solid #D4DFEC;border-radius:10px;padding:.45rem .7rem;margin:.35rem 0 .85rem 0;gap:1rem;}
+div[role="radiogroup"] label, div[role="radiogroup"] p, div[role="radiogroup"] span {color:#17365E !important;font-weight:700 !important;opacity:1 !important;}
+div[role="radiogroup"] label {padding:.2rem .45rem;}
+div[data-testid="stPlotlyChart"] {margin-top:.12rem;}
+
 @media(max-width:900px){.block-container{padding:.8rem .65rem .35rem .65rem!important}.hero-title{font-size:1.12rem}.kpi{padding:.48rem .55rem;min-height:72px}.kpi-value{font-size:1.12rem}}
 </style>
 """, unsafe_allow_html=True)
@@ -207,15 +212,15 @@ def polish(fig, height=295):
 # Presentation layout: page 1 has budget chart, then utilization + expense mix.
 # Activity delivery is intentionally placed on page 2 so chart titles/descriptions never overlap.
 view = st.radio(
-    "Dashboard page",
+    "Select dashboard view",
     ["Portfolio overview", "Activity delivery"],
     horizontal=True,
-    label_visibility="collapsed",
+    label_visibility="visible",
     key="dashboard_page"
 )
 
 if view == "Portfolio overview":
-    st.markdown('<div class="chart-title">Budget vs. expenditure by project</div><div class="chart-sub">   </div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-title">Budget vs. expenditure by project</div><div class="chart-sub">₹ lakh · compare approved allocation with cumulative spend</div>', unsafe_allow_html=True)
     budget_plot = projects.melt(id_vars=["Project UID"], value_vars=["Budget (₹ lakh)", "Spent (₹ lakh)"], var_name="Series", value_name="Amount")
     budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
     fig = px.bar(budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text_auto=".1f",
@@ -230,7 +235,7 @@ if view == "Portfolio overview":
 
     left, right = st.columns([1, 1], gap="medium")
     with left:
-        st.markdown('<div class="chart-title">Portfolio utilization by project</div><div class="chart-sub">   </div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-title">Portfolio utilization by project</div><div class="chart-sub">Cumulative expenditure as a percentage of sanctioned budget</div>', unsafe_allow_html=True)
         util_plot = projects.dropna(subset=["Utilization (%)"]).sort_values("Utilization (%)", ascending=True)
         util_colors = ["#D97757" if x > 100 else TEAL if x >= 70 else BLUE for x in util_plot["Utilization (%)"]]
         fig2 = go.Figure()
@@ -247,7 +252,7 @@ if view == "Portfolio overview":
         st.plotly_chart(fig2, use_container_width=True, config=PLOT_CONFIG)
 
     with right:
-        st.markdown('<div class="chart-title">Where the expenditure goes</div><div class="chart-sub">   </div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-title">Where the expenditure goes</div><div class="chart-sub">Share of reported cumulative spend by expense head</div>', unsafe_allow_html=True)
         if not expense_heads.empty and "Spent (₹)" in expense_heads:
             eh = expense_heads.copy()
             eh["Spent (₹)"] = pd.to_numeric(eh["Spent (₹)"], errors="coerce").fillna(0)
@@ -273,7 +278,7 @@ if view == "Portfolio overview":
             st.info("No positive expense-head totals found in the source workbook.")
 
 else:
-    st.markdown('<div class="chart-title">Activity delivery across projects</div><div class="chart-sub">  </div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-title">Activity delivery across projects</div><div class="chart-sub">Reported activity counts · conducted versus attended</div>', unsafe_allow_html=True)
     cdf = conducted.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities conducted"}) if not conducted.empty else pd.DataFrame(columns=["Project UID", "Activities conducted"])
     adf = attended.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities attended"}) if not attended.empty else pd.DataFrame(columns=["Project UID", "Activities attended"])
     act = pd.DataFrame({"Project UID": [f"UID{i}" for i in range(1,10)]}).merge(cdf, on="Project UID", how="left").merge(adf, on="Project UID", how="left").fillna(0)
