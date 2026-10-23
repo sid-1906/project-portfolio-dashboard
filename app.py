@@ -61,6 +61,24 @@ div[data-testid="stCustomComponentV1"] iframe {
  background:transparent!important;border-radius:14px!important;
 }
 div[data-testid="stCustomComponentV1"] iframe {width:100%!important;}
+
+/* streamlit-plotly-events is rendered in a custom-component iframe.
+   Remove borders/backgrounds from every Streamlit wrapper around that iframe. */
+div[data-testid="stElementContainer"]:has(div[data-testid="stCustomComponentV1"]),
+div[data-testid="stVerticalBlock"] > div:has(div[data-testid="stCustomComponentV1"]),
+div[data-testid="stCustomComponentV1"],
+div[data-testid="stCustomComponentV1"] > div,
+div[data-testid="stCustomComponentV1"] > iframe,
+div[data-testid="stCustomComponentV1"] iframe,
+iframe[title*="streamlit_plotly_events"] {
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+div[data-testid="stCustomComponentV1"] {padding:0!important;margin-top:0!important;}
+div[data-testid="stCustomComponentV1"] iframe {border-radius:14px!important;}
+
 .stButton>button {border-radius:9px;border:1px solid #D8E3EF;background:#FFFFFF;color:#17365E;font-weight:700;min-height:2.55rem;padding:.45rem .9rem;}
 .stButton>button:hover {border-color:#3E78A8;color:#12395F;background:#F5F9FD;}
 [data-testid="stVerticalBlock"] {gap:.48rem;}
