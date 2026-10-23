@@ -298,19 +298,6 @@ view = st.radio(
 )
 
 if view == "Portfolio overview":
-    st.markdown('<div class="chart-title">Budget vs. expenditure by project</div><div class="chart-sub">₹ lakh · compare approved allocation with cumulative spend</div>', unsafe_allow_html=True)
-    budget_plot = projects.melt(id_vars=["Project UID"], value_vars=["Budget (₹ lakh)", "Spent (₹ lakh)"], var_name="Series", value_name="Amount")
-    budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
-    fig = px.bar(budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text_auto=".1f",
-                 color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD},
-                 category_orders={"Project UID": projects["Project UID"].tolist()})
-    fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#1D2A3A", size=10))
-    fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.28, bargroupgap=.08,
-                      margin=dict(l=12, r=16, t=22, b=26))
-    fig.update_yaxes(rangemode="tozero")
-    polish(fig, 330)
-    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
-
     left, right = st.columns([1, 1], gap="medium")
     with left:
         st.markdown('<div class="chart-title">Portfolio utilization by project</div><div class="chart-sub">Cumulative expenditure as a percentage of sanctioned budget</div>', unsafe_allow_html=True)
@@ -355,6 +342,18 @@ if view == "Portfolio overview":
         else:
             st.info("No positive expense-head totals found in the source workbook.")
 
+    st.markdown('<div class="chart-title">Budget vs. expenditure by project</div><div class="chart-sub">₹ lakh · compare approved allocation with cumulative spend</div>', unsafe_allow_html=True)
+    budget_plot = projects.melt(id_vars=["Project UID"], value_vars=["Budget (₹ lakh)", "Spent (₹ lakh)"], var_name="Series", value_name="Amount")
+    budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
+    fig = px.bar(budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text_auto=".1f",
+                 color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD},
+                 category_orders={"Project UID": projects["Project UID"].tolist()})
+    fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#1D2A3A", size=10))
+    fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.28, bargroupgap=.08,
+                      margin=dict(l=12, r=16, t=22, b=26))
+    fig.update_yaxes(rangemode="tozero")
+    polish(fig, 330)
+    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
 else:
     st.markdown('<div class="chart-title">Activity delivery across projects</div><div class="chart-sub">Reported activity counts · conducted versus attended</div>', unsafe_allow_html=True)
     cdf = conducted.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities conducted"}) if not conducted.empty else pd.DataFrame(columns=["Project UID", "Activities conducted"])
