@@ -291,8 +291,6 @@ def polish(fig, height=295):
 # Presentation layout: page 1 has budget chart, then utilization + expense mix.
 # Activity delivery is intentionally placed on page 2 so chart titles/descriptions never overlap.
 page_options = ["Portfolio overview", "Activity delivery"]
-if st.session_state.get("selected_project_uid"):
-    page_options.append("Project expenditure details")
 if st.session_state.get("dashboard_page") not in page_options:
     st.session_state["dashboard_page"] = "Portfolio overview"
 view = st.radio(
@@ -302,6 +300,10 @@ view = st.radio(
     label_visibility="visible",
     key="dashboard_page"
 )
+# When an expenditure bar is clicked, show the drill-down branch without
+# mutating the radio widget's state after it has been instantiated.
+if st.session_state.get("selected_project_uid"):
+    view = "Project expenditure details"
 
 if view == "Portfolio overview":
     left, right = st.columns([1, 1], gap="medium")
