@@ -395,7 +395,6 @@ elif view == "Project expenditure details":
         st.markdown('<div class="chart-sub">Breakdown of expenditure reported in Section 1 of the uploaded workbook</div>', unsafe_allow_html=True)
         if st.button("← Back to portfolio overview"):
             st.session_state.pop("selected_project_uid", None)
-            st.session_state["dashboard_page"] = "Portfolio overview"
             st.rerun()
         d1, d2, d3, d4 = st.columns(4, gap="medium")
         with d1: kpi("SANCTIONED BUDGET", f"₹{project_budget/100000:,.2f} L", selected_uid)
