@@ -42,10 +42,25 @@ footer, #MainMenu { visibility:hidden; }
 .section-heading {font-family:"Manrope",Arial,sans-serif;font-size:1.18rem;font-weight:800;letter-spacing:-.025em;color:#142E4B!important;margin:.05rem 0 .18rem;line-height:1.35;}
 .chart-title {font-family:"Manrope",Arial,sans-serif;font-size:1rem;font-weight:800;color:#173653!important;margin:.65rem 0 .18rem;line-height:1.35;letter-spacing:-.02em;display:block;}
 .chart-sub {font-size:.78rem;color:#73849A!important;margin-bottom:.48rem;line-height:1.5;display:block;}
-div[data-testid="stPlotlyChart"] {background:#FFFFFF;border:1px solid #E3EAF2;border-radius:15px;padding:.22rem;box-shadow:0 5px 18px rgba(26,54,84,.035);margin-bottom:.5rem;overflow:hidden;}
-div[data-testid="stCustomComponentV1"] {border:1px solid #E3EAF2;border-radius:15px;background:#FFFFFF;padding:.22rem;overflow:hidden;margin-bottom:.5rem;box-shadow:0 5px 18px rgba(26,54,84,.035);}
-iframe[title*="streamlit_plotly_events"], div[data-testid="stCustomComponentV1"] iframe {border:0!important;outline:0!important;box-shadow:none!important;background:#FFFFFF!important;}
-div[data-testid="stCustomComponentV1"] > iframe {display:block;border:0!important;}
+/* Clean chart surfaces: no heavy black frame around the interactive budget chart. */
+div[data-testid="stPlotlyChart"] {
+ background:#FFFFFF;border:1px solid #E3EAF2;border-radius:14px;
+ padding:.12rem;box-shadow:0 4px 14px rgba(26,54,84,.035);
+ margin-bottom:.55rem;overflow:hidden;
+}
+div[data-testid="stCustomComponentV1"] {
+ border:0!important;outline:0!important;border-radius:14px!important;
+ background:transparent!important;padding:0!important;overflow:hidden!important;
+ margin-bottom:.55rem;box-shadow:none!important;
+}
+div[data-testid="stCustomComponentV1"] > div,
+div[data-testid="stCustomComponentV1"] > iframe,
+iframe[title*="streamlit_plotly_events"],
+div[data-testid="stCustomComponentV1"] iframe {
+ display:block;border:0!important;outline:0!important;box-shadow:none!important;
+ background:transparent!important;border-radius:14px!important;
+}
+div[data-testid="stCustomComponentV1"] iframe {width:100%!important;}
 .stButton>button {border-radius:9px;border:1px solid #D8E3EF;background:#FFFFFF;color:#17365E;font-weight:700;min-height:2.55rem;padding:.45rem .9rem;}
 .stButton>button:hover {border-color:#3E78A8;color:#12395F;background:#F5F9FD;}
 [data-testid="stVerticalBlock"] {gap:.48rem;}
@@ -434,6 +449,12 @@ if view == "Portfolio overview":
                    tickformat=".1f", automargin=True)
     )
     polish(fig, 355)
+    fig.update_layout(
+        paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
+        margin=dict(l=22, r=24, t=42, b=36),
+        legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0,
+                    font=dict(size=10, color="#26394A"), bgcolor="rgba(255,255,255,0)")
+    )
     fig.update_yaxes(range=[0, max_value * 1.18 if max_value else 1], tickformat=".1f")
     st.caption("Select an orange bar to view the selected project's expenditure breakdown.")
     clicked_points = plotly_events(fig, click_event=True, select_event=False, hover_event=False,
