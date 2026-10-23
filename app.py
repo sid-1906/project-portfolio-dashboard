@@ -351,8 +351,9 @@ if view == "Portfolio overview":
     st.markdown('<div class="chart-title">Budget vs. expenditure by project</div><div class="chart-sub">₹ lakh · compare approved allocation with cumulative spend</div>', unsafe_allow_html=True)
     budget_plot = projects.melt(id_vars=["Project UID"], value_vars=["Budget (₹ lakh)", "Spent (₹ lakh)"], var_name="Series", value_name="Amount")
     budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
+    budget_plot["Value label"] = budget_plot["Amount"].map(lambda value: f"{value:.1f}")
     fig = px.bar(
-        budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text_auto=".1f",
+        budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text="Value label",
         custom_data=["Project UID", "Series"],
         color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD},
         category_orders={"Project UID": projects["Project UID"].tolist(),
@@ -376,7 +377,6 @@ if view == "Portfolio overview":
             "Cumulative expenditure" in clicked_series or point.get("curveNumber") == 1
         ):
             st.session_state["selected_project_uid"] = clicked_uid
-            st.session_state["dashboard_page"] = "Project expenditure details"
             st.rerun()
 
 elif view == "Project expenditure details":
@@ -392,6 +392,7 @@ elif view == "Project expenditure details":
         st.markdown(f'<div class="chart-title">{selected_uid} · Expenditure details</div>', unsafe_allow_html=True)
         st.markdown('<div class="chart-sub">Breakdown of expenditure reported in Section 1 of the uploaded workbook</div>', unsafe_allow_html=True)
         if st.button("← Back to portfolio overview"):
+            st.session_state.pop("selected_project_uid", None)
             st.session_state["dashboard_page"] = "Portfolio overview"
             st.rerun()
         d1, d2, d3, d4 = st.columns(4, gap="medium")
