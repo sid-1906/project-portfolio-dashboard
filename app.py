@@ -346,7 +346,9 @@ if view == "Portfolio overview":
     left, right = st.columns([1, 1], gap="medium")
     with left:
         st.markdown('<div class="chart-title">Portfolio utilization by project</div><div class="chart-sub">Cumulative expenditure as a percentage of sanctioned budget</div>', unsafe_allow_html=True)
-        util_plot = projects.dropna(subset=["Utilization (%)"]).sort_values("Utilization (%)", ascending=True)
+        util_plot = projects.copy()
+        util_plot["Utilization (%)"] = pd.to_numeric(util_plot["Utilization (%)"], errors="coerce")
+        util_plot = util_plot.dropna(subset=["Utilization (%)"]).sort_values("Utilization (%)", ascending=True)
         util_colors = ["#D97757" if x > 100 else TEAL if x >= 70 else BLUE for x in util_plot["Utilization (%)"]]
         fig2 = go.Figure()
         fig2.add_trace(go.Bar(x=util_plot["Utilization (%)"], y=util_plot["Project UID"], orientation="h", marker_color=util_colors,
@@ -366,6 +368,7 @@ if view == "Portfolio overview":
         if not expense_heads.empty and "Spent (₹)" in expense_heads:
             eh = expense_heads.copy()
             eh["Spent (₹)"] = pd.to_numeric(eh["Spent (₹)"], errors="coerce").fillna(0)
+            eh["Spent (₹)"] = pd.to_numeric(eh["Spent (₹)"], errors="coerce").fillna(0.0)
             eh = eh.groupby("Expense Head", as_index=False)["Spent (₹)"].sum()
             eh = eh[eh["Spent (₹)"] > 0].sort_values("Spent (₹)", ascending=False)
         else:
@@ -388,24 +391,50 @@ if view == "Portfolio overview":
             st.info("No positive expense-head totals found in the source workbook.")
 
     st.markdown('<div class="section-kicker">Project comparison</div><div class="section-heading">Budget vs. expenditure by project</div><div class="chart-sub">Values in ₹ lakh · compare approved allocation with cumulative spend. Select an orange bar to explore a project.</div>', unsafe_allow_html=True)
-    budget_plot = projects.melt(id_vars=["Project UID"], value_vars=["Budget (₹ lakh)", "Spent (₹ lakh)"], var_name="Series", value_name="Amount")
-    budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
-    budget_plot["Value label"] = budget_plot["Amount"].map(lambda value: f"{value:.1f}")
-    fig = px.bar(
-        budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text="Value label",
-        custom_data=["Project UID", "Series"],
-        color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD},
-        category_orders={"Project UID": projects["Project UID"].tolist(),
-                         "Series": ["Sanctioned budget", "Cumulative expenditure"]}
+    # Build explicit numeric traces. This avoids categorical/index coercion and
+    # ensures the visible bar height is the same value shown in its label.
+    chart_projects = projects.copy()
+    chart_projects["Budget (₹ lakh)"] = pd.to_numeric(chart_projects["Budget (₹ lakh)"], errors="coerce").fillna(0.0)
+    chart_projects["Spent (₹ lakh)"] = pd.to_numeric(chart_projects["Spent (₹ lakh)"], errors="coerce").fillna(0.0)
+    chart_projects["Project UID"] = chart_projects["Project UID"].astype(str)
+    uids = chart_projects["Project UID"].tolist()
+    budgets = chart_projects["Budget (₹ lakh)"].astype(float).tolist()
+    spends = chart_projects["Spent (₹ lakh)"].astype(float).tolist()
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name="Sanctioned budget",
+        x=uids, y=budgets,
+        marker=dict(color=BLUE, line=dict(width=0)),
+        text=[f"{v:.1f}" for v in budgets],
+        textposition="outside", cliponaxis=False,
+        customdata=[[uid, "Sanctioned budget"] for uid in uids],
+        hovertemplate="%{x}<br>Sanctioned budget: ₹%{y:.2f} lakh<extra></extra>",
+        textfont=dict(color="#26394A", size=11)
+    ))
+    fig.add_trace(go.Bar(
+        name="Cumulative expenditure",
+        x=uids, y=spends,
+        marker=dict(color=GOLD, line=dict(width=0)),
+        text=[f"{v:.1f}" for v in spends],
+        textposition="outside", cliponaxis=False,
+        customdata=[[uid, "Cumulative expenditure"] for uid in uids],
+        hovertemplate="%{x}<br>Cumulative expenditure: ₹%{y:.2f} lakh<extra></extra>",
+        textfont=dict(color="#26394A", size=11)
+    ))
+    max_value = max(budgets + spends, default=0)
+    fig.update_layout(
+        barmode="group", yaxis_title="₹ lakh", xaxis_title="",
+        bargap=.24, bargroupgap=.10,
+        margin=dict(l=22, r=26, t=38, b=34),
+        showlegend=True,
+        legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0,
+                    font=dict(size=10, color="#26394A")),
+        yaxis=dict(rangemode="tozero", range=[0, max_value * 1.18 if max_value else 1],
+                   tickformat=".1f", automargin=True)
     )
-    fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0,
-                      textfont=dict(color="#1D2A3A", size=10))
-    fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.24, bargroupgap=.10,
-                      margin=dict(l=18, r=24, t=32, b=32), showlegend=True)
-    fig.update_yaxes(rangemode="tozero", automargin=True, title_standoff=8)
-    fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0,
-                      textfont=dict(color="#26394A", size=11), hovertemplate="%{x}<br>%{fullData.name}: ₹%{y:.2f} lakh<extra></extra>")
     polish(fig, 355)
+    fig.update_yaxes(range=[0, max_value * 1.18 if max_value else 1], tickformat=".1f")
     st.caption("Select an orange bar to view the selected project's expenditure breakdown.")
     clicked_points = plotly_events(fig, click_event=True, select_event=False, hover_event=False,
                                    override_height=355, key="budget_expenditure_click")
@@ -414,7 +443,7 @@ if view == "Portfolio overview":
         custom = point.get("customdata") or []
         clicked_uid = str(custom[0]) if len(custom) > 0 else str(point.get("x", ""))
         clicked_series = str(custom[1]) if len(custom) > 1 else ""
-        if clicked_uid in projects["Project UID"].astype(str).tolist() and (
+        if clicked_uid in uids and (
             "Cumulative expenditure" in clicked_series or point.get("curveNumber") == 1
         ):
             st.session_state["selected_project_uid"] = clicked_uid
@@ -471,13 +500,18 @@ elif view == "Project expenditure details":
                 polish(pie_fig, 330)
                 st.plotly_chart(pie_fig, use_container_width=True, config=PLOT_CONFIG)
             st.markdown('<div class="chart-title">Sanctioned amount vs. actual expenditure by expense head</div>', unsafe_allow_html=True)
+            uid_expenses["Sanctioned (₹)"] = pd.to_numeric(uid_expenses["Sanctioned (₹)"], errors="coerce").fillna(0.0)
+            uid_expenses["Spent (₹)"] = pd.to_numeric(uid_expenses["Spent (₹)"], errors="coerce").fillna(0.0)
             compare = uid_expenses.melt(id_vars=["Expense Head"], value_vars=["Sanctioned (₹)", "Spent (₹)"],
                                         var_name="Series", value_name="Amount")
+            compare["Amount"] = pd.to_numeric(compare["Amount"], errors="coerce").fillna(0.0)
             compare["Series"] = compare["Series"].map({"Sanctioned (₹)": "Sanctioned", "Spent (₹)": "Spent"})
+            compare["Amount label"] = compare["Amount"].map(lambda value: f"₹{value:,.0f}")
             compare_fig = px.bar(compare, x="Expense Head", y="Amount", color="Series", barmode="group",
-                                 color_discrete_map={"Sanctioned": BLUE, "Spent": GOLD}, text_auto=",.0f")
+                                 color_discrete_map={"Sanctioned": BLUE, "Spent": GOLD}, text="Amount label")
             compare_fig.update_layout(xaxis_title="", yaxis_title="Amount (₹)", margin=dict(l=12, r=12, t=20, b=35))
             compare_fig.update_yaxes(tickformat=",.0f", rangemode="tozero")
+            compare_fig.update_traces(textposition="outside", cliponaxis=False, textfont=dict(color="#26394A", size=10))
             polish(compare_fig, 360)
             st.plotly_chart(compare_fig, use_container_width=True, config=PLOT_CONFIG)
         else:
@@ -488,11 +522,18 @@ else:
     cdf = conducted.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities conducted"}) if not conducted.empty else pd.DataFrame(columns=["Project UID", "Activities conducted"])
     adf = attended.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities attended"}) if not attended.empty else pd.DataFrame(columns=["Project UID", "Activities attended"])
     act = projects[["Project UID"]].copy().merge(cdf, on="Project UID", how="left").merge(adf, on="Project UID", how="left").fillna(0)
+    act["Project UID"] = act["Project UID"].astype(str)
+    act["Activities conducted"] = pd.to_numeric(act["Activities conducted"], errors="coerce").fillna(0)
+    act["Activities attended"] = pd.to_numeric(act["Activities attended"], errors="coerce").fillna(0)
     act_long = act.melt(id_vars="Project UID", var_name="Activity type", value_name="Count")
-    fig4 = px.bar(act_long, x="Project UID", y="Count", color="Activity type", barmode="group", text_auto=True,
+    act_long["Count"] = pd.to_numeric(act_long["Count"], errors="coerce").fillna(0)
+    act_long["Count label"] = act_long["Count"].map(lambda value: f"{value:g}")
+    fig4 = px.bar(act_long, x="Project UID", y="Count", color="Activity type", barmode="group", text="Count label",
                   color_discrete_map={"Activities conducted": TEAL, "Activities attended": "#8D83B8"},
-                  category_orders={"Project UID": projects["Project UID"].tolist()})
-    fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#1D2A3A", size=11))
+                  category_orders={"Project UID": projects["Project UID"].astype(str).tolist(),
+                                   "Activity type": ["Activities conducted", "Activities attended"]})
+    fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#26394A", size=11),
+                       hovertemplate="%{x}<br>%{fullData.name}: %{y}<extra></extra>")
     fig4.update_layout(xaxis_title="", yaxis_title="Activity count", bargap=.3,
                        margin=dict(l=16, r=18, t=28, b=28))
     polish(fig4, 470)
@@ -501,18 +542,23 @@ else:
 
     st.markdown('<div class="chart-title">Research and innovation progress</div><div class="chart-sub">Section 4 · status of research papers, patents, and other reported activities</div>', unsafe_allow_html=True)
     if not progress.empty:
-        pvt = progress.groupby(["Project UID", "Status"], as_index=False)["Count"].sum()
+        pvt = progress.copy()
+        pvt["Count"] = pd.to_numeric(pvt["Count"], errors="coerce").fillna(0)
+        pvt["Project UID"] = pvt["Project UID"].astype(str)
+        pvt = pvt.groupby(["Project UID", "Status"], as_index=False)["Count"].sum()
+        pvt["Count label"] = pvt["Count"].map(lambda value: f"{value:g}" if value > 0 else "")
         fig5 = px.bar(
-            pvt, x="Project UID", y="Count", color="Status", barmode="stack", text_auto=True,
+            pvt, x="Project UID", y="Count", color="Status", barmode="stack", text="Count label",
             color_discrete_map={
                 "Published / granted": BLUE,
                 "In communication / filed": TEAL,
                 "In progress": GOLD,
             },
-            category_orders={"Project UID": projects["Project UID"].tolist()},
+            category_orders={"Project UID": projects["Project UID"].astype(str).tolist()},
         )
         fig5.update_traces(textposition="inside", insidetextanchor="middle", cliponaxis=False,
-                           textfont=dict(color="white", size=10), marker_line_width=0)
+                           textfont=dict(color="white", size=10), marker_line_width=0,
+                           hovertemplate="%{x}<br>%{fullData.name}: %{y}<extra></extra>")
         fig5.update_layout(xaxis_title="", yaxis_title="Reported items", bargap=.28,
                            margin=dict(l=16, r=18, t=22, b=28),
                            legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0,
