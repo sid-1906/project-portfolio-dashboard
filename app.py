@@ -12,37 +12,58 @@ st.set_page_config(page_title="Project Portfolio | Executive View", page_icon="�
 # Presentation-first styling: compact, high contrast, and no tables or unnecessary controls.
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root { color-scheme: light; }
-.stApp { background:#F3F6FB; color:#1D2A3A; }
-.block-container { padding:1.05rem 1.2rem .65rem 1.2rem !important; max-width:1800px; }
-[data-testid="stHeader"] { background:transparent; }
+html, body, [class*="css"] { font-family:"DM Sans",Arial,sans-serif; }
+.stApp { background:#F4F7FB; color:#172B45; }
+.block-container { padding:1.05rem 1.55rem 1.4rem 1.55rem !important; max-width:1900px; }
+[data-testid="stHeader"] { background:rgba(244,247,251,.92); }
 [data-testid="stToolbar"] { right:1rem; }
 footer, #MainMenu { visibility:hidden; }
 .hero {
- background:linear-gradient(115deg,#12233F 0%,#1E4774 100%);
- color:#FFFFFF; padding:.88rem 1.25rem; border-radius:12px; margin-top:.15rem; margin-bottom:.72rem;
- box-shadow:0 4px 14px rgba(32,60,100,.10);
+ background:linear-gradient(112deg,#10253F 0%,#17466B 58%,#176C72 100%);
+ color:#FFFFFF; padding:1.25rem 1.55rem 1.3rem; border-radius:18px; margin:.1rem 0 1rem;
+ box-shadow:0 10px 28px rgba(16,37,63,.14); position:relative; overflow:hidden;
+ border:1px solid rgba(255,255,255,.14);
 }
-.hero-title {font-size:1.38rem;font-weight:780;line-height:1.25;color:#FFFFFF!important;letter-spacing:-.01em;margin:0;}
-.kpi {background:#FFFFFF;border:1px solid #E4EAF3;border-radius:12px;padding:.68rem .85rem;min-height:86px;box-shadow:0 4px 14px rgba(32,60,100,.06);}
-.kpi-label {font-size:.72rem;color:#6B7890!important;font-weight:650;letter-spacing:.025em;}
-.kpi-value {font-size:1.42rem;font-weight:780;color:#12233F!important;margin-top:.24rem;line-height:1.12;}
-.kpi-foot {font-size:.68rem;color:#6B7890!important;margin-top:.18rem;}
-.chart-title {font-size:1rem;font-weight:760;color:#12233F!important;margin:.58rem 0 .2rem 0;line-height:1.35;display:block;letter-spacing:-.01em;}
-.chart-sub {font-size:.76rem;color:#68788D!important;margin-bottom:.48rem;line-height:1.45;display:block;}
-div[data-testid="stPlotlyChart"] {background:#FFFFFF;border:1px solid #E4EAF3;border-radius:12px;padding:.15rem;box-shadow:0 3px 12px rgba(32,60,100,.045);margin-bottom:.35rem;overflow:hidden;}
-iframe[title*="streamlit_plotly_events"], div[data-testid="stCustomComponentV1"] iframe {border:0 !important;outline:0 !important;box-shadow:none !important;background:#FFFFFF !important;}
-div[data-testid="stCustomComponentV1"] {border:1px solid #E4EAF3;border-radius:12px;background:#FFFFFF;padding:.2rem;overflow:hidden;margin-bottom:.45rem;}
-div[data-testid="stCustomComponentV1"] > iframe {display:block;border:0 !important;}
-.stButton>button {border-radius:8px;border:1px solid #D8E2EE;background:#FFFFFF;color:#17365E;font-weight:700;}
-[data-testid="stVerticalBlock"] {gap:.34rem;}\n.overview-divider {height:1px;background:#DCE5EF;margin:.5rem 0 .65rem 0;}\n
-[data-testid="stHorizontalBlock"] {gap:.7rem;}
-div[role="radiogroup"] {background:#E7EEF7;border:1px solid #D4DFEC;border-radius:10px;padding:.45rem .7rem;margin:.35rem 0 .85rem 0;gap:1rem;}
-div[role="radiogroup"] label, div[role="radiogroup"] p, div[role="radiogroup"] span {color:#17365E !important;font-weight:700 !important;opacity:1 !important;}
-div[role="radiogroup"] label {padding:.2rem .45rem;}
-div[data-testid="stPlotlyChart"] {margin-top:.12rem;}
-
-@media(max-width:900px){.block-container{padding:.8rem .65rem .35rem .65rem!important}.hero-title{font-size:1.12rem}.kpi{padding:.48rem .55rem;min-height:72px}.kpi-value{font-size:1.12rem}}
+.hero:after {content:"";position:absolute;width:250px;height:250px;right:-70px;top:-135px;border:1px solid rgba(255,255,255,.15);border-radius:50%;box-shadow:0 0 0 28px rgba(255,255,255,.035),0 0 0 58px rgba(255,255,255,.025);}
+.hero-eyebrow {font-size:.68rem;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:#9FE2D7!important;margin-bottom:.4rem;}
+.hero-title {font-family:"Manrope",Arial,sans-serif;font-size:1.7rem;font-weight:800;line-height:1.2;color:#FFFFFF!important;letter-spacing:-.035em;margin:0;}
+.hero-subtitle {font-size:.88rem;color:#D5E4F1!important;margin-top:.45rem;line-height:1.5;}
+.kpi {background:#FFFFFF;border:1px solid #E2EAF2;border-radius:15px;padding:.95rem 1rem .9rem;min-height:112px;box-shadow:0 5px 18px rgba(26,54,84,.045);position:relative;overflow:hidden;}
+.kpi:before {content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#3E78A8;}
+[data-testid="column"]:nth-child(2) .kpi:before {background:#E5A84B;}
+[data-testid="column"]:nth-child(3) .kpi:before {background:#3E9B91;}
+[data-testid="column"]:nth-child(4) .kpi:before {background:#8D83B8;}
+.kpi-label {font-size:.68rem;color:#6B7C90!important;font-weight:700;letter-spacing:.085em;text-transform:uppercase;}
+.kpi-value {font-family:"Manrope",Arial,sans-serif;font-size:1.62rem;font-weight:800;color:#132C49!important;margin-top:.45rem;line-height:1.05;letter-spacing:-.035em;}
+.kpi-foot {font-size:.73rem;color:#73849A!important;margin-top:.38rem;}
+.section-kicker {font-size:.67rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#71839A!important;margin:.85rem 0 .2rem;}
+.section-heading {font-family:"Manrope",Arial,sans-serif;font-size:1.18rem;font-weight:800;letter-spacing:-.025em;color:#142E4B!important;margin:.05rem 0 .18rem;line-height:1.35;}
+.chart-title {font-family:"Manrope",Arial,sans-serif;font-size:1rem;font-weight:800;color:#173653!important;margin:.65rem 0 .18rem;line-height:1.35;letter-spacing:-.02em;display:block;}
+.chart-sub {font-size:.78rem;color:#73849A!important;margin-bottom:.48rem;line-height:1.5;display:block;}
+div[data-testid="stPlotlyChart"] {background:#FFFFFF;border:1px solid #E3EAF2;border-radius:15px;padding:.22rem;box-shadow:0 5px 18px rgba(26,54,84,.035);margin-bottom:.5rem;overflow:hidden;}
+div[data-testid="stCustomComponentV1"] {border:1px solid #E3EAF2;border-radius:15px;background:#FFFFFF;padding:.22rem;overflow:hidden;margin-bottom:.5rem;box-shadow:0 5px 18px rgba(26,54,84,.035);}
+iframe[title*="streamlit_plotly_events"], div[data-testid="stCustomComponentV1"] iframe {border:0!important;outline:0!important;box-shadow:none!important;background:#FFFFFF!important;}
+div[data-testid="stCustomComponentV1"] > iframe {display:block;border:0!important;}
+.stButton>button {border-radius:9px;border:1px solid #D8E3EF;background:#FFFFFF;color:#17365E;font-weight:700;min-height:2.55rem;padding:.45rem .9rem;}
+.stButton>button:hover {border-color:#3E78A8;color:#12395F;background:#F5F9FD;}
+[data-testid="stVerticalBlock"] {gap:.48rem;}
+[data-testid="stHorizontalBlock"] {gap:1rem;}
+div[role="radiogroup"] {background:#EAF0F7;border:1px solid #D9E3EF;border-radius:12px;padding:.48rem .7rem;margin:.35rem 0 .9rem;gap:1rem;width:max-content;}
+div[role="radiogroup"] label, div[role="radiogroup"] p, div[role="radiogroup"] span {color:#17365E!important;font-weight:700!important;opacity:1!important;}
+div[role="radiogroup"] label {padding:.24rem .5rem;}
+.overview-divider {height:1px;background:linear-gradient(90deg,#D8E3EF,transparent);margin:.85rem 0 .75rem;}
+div[data-testid="stCaptionContainer"] p {color:#728399;font-size:.75rem;}
+@media(max-width:900px){
+ .block-container{padding:.75rem .7rem 1rem!important}
+ .hero{padding:1rem;border-radius:14px}
+ .hero-title{font-size:1.3rem}
+ .hero-subtitle{font-size:.78rem}
+ .kpi{padding:.65rem .7rem;min-height:90px}
+ .kpi-value{font-size:1.15rem}
+ .section-heading{font-size:1rem}
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -263,9 +284,15 @@ total_spent = projects["Cumulative Expenditure (₹)"].fillna(0).sum()
 util = total_spent / total_budget if total_budget else None
 overspent = projects[projects["Cumulative Expenditure (₹)"].fillna(0) > projects["Sanctioned Budget (₹)"].fillna(0)]
 
-st.markdown(f"""
-<div class="hero"><div class="hero-title">Overview of ANRF-PAIR Projects under COEP</div></div>
+st.markdown("""
+<div class="hero">
+  <div class="hero-eyebrow">Executive portfolio dashboard</div>
+  <div class="hero-title">Overview of ANRF-PAIR Projects under COEP</div>
+  <div class="hero-subtitle">Funding overview · Expenditure distribution · Project utilization</div>
+</div>
 """, unsafe_allow_html=True)
+
+st.markdown('<div class="section-kicker">Portfolio at a glance</div>', unsafe_allow_html=True)
 
 # KPI cards are visual scorecards rather than Streamlit metric widgets.
 def kpi(label, value, foot):
@@ -315,6 +342,7 @@ if st.session_state.get("selected_project_uid"):
     view = "Project expenditure details"
 
 if view == "Portfolio overview":
+    st.markdown('<div class="section-kicker">Financial performance</div><div class="section-heading">Budget health & expenditure mix</div>', unsafe_allow_html=True)
     left, right = st.columns([1, 1], gap="medium")
     with left:
         st.markdown('<div class="chart-title">Portfolio utilization by project</div><div class="chart-sub">Cumulative expenditure as a percentage of sanctioned budget</div>', unsafe_allow_html=True)
@@ -359,7 +387,7 @@ if view == "Portfolio overview":
         else:
             st.info("No positive expense-head totals found in the source workbook.")
 
-    st.markdown('<div class="chart-title">Budget vs. expenditure by project</div><div class="chart-sub">₹ lakh · compare approved allocation with cumulative spend</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-kicker">Project comparison</div><div class="section-heading">Budget vs. expenditure by project</div><div class="chart-sub">Values in ₹ lakh · compare approved allocation with cumulative spend. Select an orange bar to explore a project.</div>', unsafe_allow_html=True)
     budget_plot = projects.melt(id_vars=["Project UID"], value_vars=["Budget (₹ lakh)", "Spent (₹ lakh)"], var_name="Series", value_name="Amount")
     budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
     budget_plot["Value label"] = budget_plot["Amount"].map(lambda value: f"{value:.1f}")
@@ -393,6 +421,7 @@ if view == "Portfolio overview":
             st.rerun()
 
 elif view == "Project expenditure details":
+    st.markdown('<div class="section-kicker">Project drill-down</div>', unsafe_allow_html=True)
     selected_uid = st.session_state.get("selected_project_uid")
     project_row = projects[projects["Project UID"].astype(str) == str(selected_uid)]
     if project_row.empty:
@@ -455,7 +484,7 @@ elif view == "Project expenditure details":
             st.info("No expense-head line items with reported spend were found for this project in Section 1.")
 
 else:
-    st.markdown('<div class="chart-title">Activity delivery across projects</div><div class="chart-sub">Reported activity counts · conducted versus attended</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-kicker">Delivery performance</div><div class="section-heading">Activity delivery across projects</div><div class="chart-sub">Reported activity counts · conducted versus attended</div>', unsafe_allow_html=True)
     cdf = conducted.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities conducted"}) if not conducted.empty else pd.DataFrame(columns=["Project UID", "Activities conducted"])
     adf = attended.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities attended"}) if not attended.empty else pd.DataFrame(columns=["Project UID", "Activities attended"])
     act = projects[["Project UID"]].copy().merge(cdf, on="Project UID", how="left").merge(adf, on="Project UID", how="left").fillna(0)
