@@ -28,11 +28,14 @@ footer, #MainMenu { visibility:hidden; }
 .kpi-label {font-size:.72rem;color:#6B7890!important;font-weight:650;letter-spacing:.025em;}
 .kpi-value {font-size:1.42rem;font-weight:780;color:#12233F!important;margin-top:.24rem;line-height:1.12;}
 .kpi-foot {font-size:.68rem;color:#6B7890!important;margin-top:.18rem;}
-.chart-title {font-size:1rem;font-weight:750;color:#12233F!important;margin:.45rem 0 .18rem 0;line-height:1.35;display:block;}
-.chart-sub {font-size:.76rem;color:#6B7890!important;margin-bottom:.35rem;line-height:1.45;display:block;}
-div[data-testid="stPlotlyChart"] {background:#FFFFFF;border:1px solid #E4EAF3;border-radius:12px;padding:.2rem;box-shadow:0 4px 14px rgba(32,60,100,.045);margin-bottom:.2rem;}
+.chart-title {font-size:1rem;font-weight:760;color:#12233F!important;margin:.58rem 0 .2rem 0;line-height:1.35;display:block;letter-spacing:-.01em;}
+.chart-sub {font-size:.76rem;color:#68788D!important;margin-bottom:.48rem;line-height:1.45;display:block;}
+div[data-testid="stPlotlyChart"] {background:#FFFFFF;border:1px solid #E4EAF3;border-radius:12px;padding:.15rem;box-shadow:0 3px 12px rgba(32,60,100,.045);margin-bottom:.35rem;overflow:hidden;}
+iframe[title*="streamlit_plotly_events"], div[data-testid="stCustomComponentV1"] iframe {border:0 !important;outline:0 !important;box-shadow:none !important;background:#FFFFFF !important;}
+div[data-testid="stCustomComponentV1"] {border:1px solid #E4EAF3;border-radius:12px;background:#FFFFFF;padding:.2rem;overflow:hidden;margin-bottom:.45rem;}
+div[data-testid="stCustomComponentV1"] > iframe {display:block;border:0 !important;}
 .stButton>button {border-radius:8px;border:1px solid #D8E2EE;background:#FFFFFF;color:#17365E;font-weight:700;}
-[data-testid="stVerticalBlock"] {gap:.34rem;}\n.overview-divider {height:1px;background:#DCE5EF;margin:.5rem 0 .65rem 0;}\n.chart-title {margin-top:.18rem !important;}
+[data-testid="stVerticalBlock"] {gap:.34rem;}\n.overview-divider {height:1px;background:#DCE5EF;margin:.5rem 0 .65rem 0;}\n
 [data-testid="stHorizontalBlock"] {gap:.7rem;}
 div[role="radiogroup"] {background:#E7EEF7;border:1px solid #D4DFEC;border-radius:10px;padding:.45rem .7rem;margin:.35rem 0 .85rem 0;gap:1rem;}
 div[role="radiogroup"] label, div[role="radiogroup"] p, div[role="radiogroup"] span {color:#17365E !important;font-weight:700 !important;opacity:1 !important;}
@@ -279,13 +282,19 @@ st.markdown('<div class="overview-divider"></div>', unsafe_allow_html=True)
 
 # Chart styling helpers.
 def polish(fig, height=295):
-    fig.update_layout(template="plotly_white", height=height, margin=dict(l=8, r=10, t=16, b=16),
-                      font=dict(family="Arial, sans-serif", size=10, color="#26394A"),
+    fig.update_layout(template="plotly_white", height=height, margin=dict(l=16, r=18, t=28, b=28),
+                      font=dict(family="Arial, sans-serif", size=11, color="#26394A"),
                       paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
-                      legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0, font=dict(size=9, color="#26394A")),
-                      hoverlabel=dict(bgcolor="#10243A", font_color="white"))
-    fig.update_xaxes(showgrid=False, zeroline=False, linecolor="#DCE4EA", tickfont=dict(size=9, color="#34495E"), title_font=dict(size=9, color="#34495E"))
-    fig.update_yaxes(gridcolor="#EAF0F4", zeroline=False, tickfont=dict(size=9, color="#34495E"), title_font=dict(size=9, color="#34495E"))
+                      legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0,
+                                  font=dict(size=10, color="#26394A"), bgcolor="rgba(255,255,255,0)"),
+                      hoverlabel=dict(bgcolor="#10243A", font_color="white"),
+                      bargap=.24, uniformtext_minsize=9, uniformtext_mode="hide")
+    fig.update_xaxes(showgrid=False, zeroline=False, linecolor="#DCE4EA",
+                     tickfont=dict(size=10, color="#34495E"), title_font=dict(size=10, color="#34495E"),
+                     automargin=True)
+    fig.update_yaxes(gridcolor="#EAF0F4", gridwidth=1, zeroline=False,
+                     tickfont=dict(size=10, color="#34495E"), title_font=dict(size=10, color="#34495E"),
+                     automargin=True)
     return fig
 
 # Presentation layout: page 1 has budget chart, then utilization + expense mix.
@@ -363,13 +372,15 @@ if view == "Portfolio overview":
     )
     fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0,
                       textfont=dict(color="#1D2A3A", size=10))
-    fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.28, bargroupgap=.08,
-                      margin=dict(l=12, r=16, t=22, b=26))
-    fig.update_yaxes(rangemode="tozero")
-    polish(fig, 330)
-    st.caption("Click an orange cumulative-expenditure bar to open that project's expenditure details.")
+    fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.24, bargroupgap=.10,
+                      margin=dict(l=18, r=24, t=32, b=32), showlegend=True)
+    fig.update_yaxes(rangemode="tozero", automargin=True, title_standoff=8)
+    fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0,
+                      textfont=dict(color="#26394A", size=11), hovertemplate="%{x}<br>%{fullData.name}: ₹%{y:.2f} lakh<extra></extra>")
+    polish(fig, 355)
+    st.caption("Select an orange bar to view the selected project's expenditure breakdown.")
     clicked_points = plotly_events(fig, click_event=True, select_event=False, hover_event=False,
-                                   override_height=330, key="budget_expenditure_click")
+                                   override_height=355, key="budget_expenditure_click")
     if clicked_points:
         point = clicked_points[0]
         custom = point.get("customdata") or []
