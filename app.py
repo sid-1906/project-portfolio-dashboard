@@ -60,32 +60,110 @@ def amount(v):
 
 def parse_workbook(data):
     wb = load_workbook(io.BytesIO(data), data_only=True)
-    expected = [f"UID{i}" for i in range(1, 10)]
-    missing = [x for x in expected if x not in wb.sheetnames]
-    if missing: raise ValueError("Workbook must contain all nine sheets UID1–UID9. Missing: " + ", ".join(missing))
-    projects, expenses, conducted, attended, warnings = [], [], [], [], []
-    for uid in expected:
+    # Accept any number of project sheets named UID1, UID2, ...; sort numerically.
+    uid_sheets = []
+    for name in wb.sheetnames:
+        match = re.fullmatch(r"UID\s*(\d+)", str(name).strip(), flags=re.I)
+        if match:
+            uid_sheets.append((int(match.group(1)), name))
+    uid_sheets.sort(key=lambda x: x[0])
+    if not uid_sheets:
+        raise ValueError("Workbook must contain project sheets named UID1, UID2, ...")
+    projects, expenses, conducted, attended, progress, warnings = [], [], [], [], [], []
+
+    def norm_header(v):
+        return re.sub(r"\s+", " ", str(v or "").strip().lower())
+
+    for _, uid in uid_sheets:
         sh = wb[uid]
-        budget, spent = amount(sh["B7"].value), amount(sh["C7"].value)
-        if budget is None or spent is None:
-            warnings.append(f"{uid}: could not read sanctioned budget or cumulative expenditure from row 7.")
-        projects.append({"Project UID": uid, "Sanctioned Budget (₹)": budget, "Cumulative Expenditure (₹)": spent})
-        for r in range(3, 7):
-            head = sh.cell(r, 1).value
-            if head:
-                expenses.append({"Project UID": uid, "Expense Head": str(head), "Sanctioned (₹)": amount(sh.cell(r, 2).value), "Spent (₹)": amount(sh.cell(r, 3).value)})
         section = None
+        section_header_row = None
+        section_headers = {}
+        project_budget = project_spent = None
+
         for r in range(1, sh.max_row + 1):
-            label = str(sh.cell(r, 1).value or "").upper()
-            if "ACTIVITIES CONDUCTED" in label:
-                section = "conducted"; continue
-            if "ACTIVITIES ATTENDED" in label:
-                section = "attended"; continue
-            activity, count = sh.cell(r, 1).value, sh.cell(r, 2).value
-            if section and activity and str(activity).strip().lower() not in ("activity", "number") and isinstance(count, (int, float)):
-                target = conducted if section == "conducted" else attended
-                target.append({"Project UID": uid, "Activity": str(activity), "Count": float(count)})
-    return pd.DataFrame(projects), pd.DataFrame(expenses), pd.DataFrame(conducted), pd.DataFrame(attended), warnings
+            first = str(sh.cell(r, 1).value or "").strip()
+            first_upper = first.upper()
+            if "SECTION 1" in first_upper or "EXPENDITURE" in first_upper and "SECTION" in first_upper:
+                section = "expense"; section_header_row = None; section_headers = {}; continue
+            if "SECTION 2" in first_upper or "ACTIVITIES CONDUCTED" in first_upper:
+                section = "conducted"; section_header_row = None; section_headers = {}; continue
+            if "SECTION 3" in first_upper or "ACTIVITIES ATTENDED" in first_upper:
+                section = "attended"; section_header_row = None; section_headers = {}; continue
+            if "SECTION 4" in first_upper or ("ACTIVIT" in first_upper and ("PROGRES" in first_upper or "PUBLICATION" in first_upper)):
+                section = "progress"; section_header_row = None; section_headers = {}; continue
+
+            if not first:
+                continue
+
+            # Detect a section's column headers by recognizable column names.
+            row_values = [sh.cell(r, c).value for c in range(1, sh.max_column + 1)]
+            normalized = [norm_header(v) for v in row_values]
+            if section == "expense" and any("sanction" in x for x in normalized) and any("spent" in x for x in normalized):
+                section_header_row = r
+                section_headers = {i + 1: x for i, x in enumerate(normalized)}
+                continue
+            if section in ("conducted", "attended") and any(x == "activity" for x in normalized) and any(x in ("number", "count") for x in normalized):
+                section_header_row = r
+                continue
+            if section == "progress" and any(x == "activity" for x in normalized) and len([x for x in normalized[1:] if x]) >= 1:
+                section_header_row = r
+                section_headers = {i + 1: str(v).strip() for i, v in enumerate(row_values) if v is not None}
+                continue
+
+            if section == "expense":
+                if first_upper == "TOTAL":
+                    # Use the total row, irrespective of its row number.
+                    project_budget = amount(sh.cell(r, 2).value)
+                    project_spent = amount(sh.cell(r, 3).value)
+                    continue
+                if section_header_row and norm_header(first) not in ("need / expense head", "expense head", "total"):
+                    # Only collect expense lines with a numeric value in either numeric column.
+                    sanctioned = amount(sh.cell(r, 2).value)
+                    spent = amount(sh.cell(r, 3).value)
+                    if sanctioned is not None or spent is not None:
+                        expenses.append({"Project UID": uid, "Expense Head": first, "Sanctioned (₹)": sanctioned, "Spent (₹)": spent})
+            elif section in ("conducted", "attended"):
+                if section_header_row and norm_header(first) != "activity":
+                    count = amount(sh.cell(r, 2).value)
+                    if count is not None:
+                        target = conducted if section == "conducted" else attended
+                        target.append({"Project UID": uid, "Activity": first, "Count": count})
+            elif section == "progress" and section_header_row and norm_header(first) != "activity":
+                for c in range(2, sh.max_column + 1):
+                    status = str(sh.cell(section_header_row, c).value or "").strip()
+                    count = amount(sh.cell(r, c).value)
+                    if status and count is not None:
+                        # Normalize common variants while retaining distinct status meanings.
+                        s = re.sub(r"\s+", " ", status).strip()
+                        sl = s.lower()
+                        if "progress" in sl:
+                            s = "In progress"
+                        elif "publish" in sl or "grant" in sl:
+                            s = "Published / granted"
+                        elif "communicat" in sl or "filed" in sl or "fill" in sl:
+                            s = "In communication / filed"
+                        progress.append({"Project UID": uid, "Activity": first, "Status": s, "Count": count})
+
+        if project_budget is None or project_spent is None:
+            # Fallback to conventional total row (not fixed row number).
+            for r in range(1, sh.max_row + 1):
+                if str(sh.cell(r, 1).value or "").strip().upper() == "TOTAL":
+                    project_budget = amount(sh.cell(r, 2).value)
+                    project_spent = amount(sh.cell(r, 3).value)
+                    break
+        if project_budget is None or project_spent is None:
+            warnings.append(f"{uid}: could not read the Section 1 TOTAL sanctioned/spent values.")
+        projects.append({"Project UID": uid, "Sanctioned Budget (₹)": project_budget, "Cumulative Expenditure (₹)": project_spent})
+
+    return (
+        pd.DataFrame(projects),
+        pd.DataFrame(expenses),
+        pd.DataFrame(conducted),
+        pd.DataFrame(attended),
+        pd.DataFrame(progress),
+        warnings,
+    )
 
 
 def get_supabase():
@@ -141,14 +219,14 @@ with st.sidebar:
     elif not expected:
         st.warning("Set ADMIN_PASSWORD in deployment secrets to enable administration.")
     with st.expander("Upload updated workbook", expanded=False):
-        st.caption("Upload the standard Excel workbook containing UID1–UID9 sheets.")
+        st.caption("Upload the standard Excel workbook with one or more UID-numbered project sheets and Sections 1–4.")
         uploaded = st.file_uploader("Project Info.xlsx", type=["xlsx"], key="admin_workbook") if is_admin else None
         if uploaded and st.button("Validate and publish", type="primary", key="publish_workbook"):
             raw = uploaded.getvalue()
             try:
                 new_projects, *_ = parse_workbook(raw)
-                if new_projects["Project UID"].nunique() != 9:
-                    st.error("Expected exactly UID1–UID9. Existing workbook was not changed.")
+                if new_projects.empty:
+                    st.error("No valid UID-numbered project sheets were found. Existing workbook was not changed.")
                 else:
                     client = get_supabase()
                     if not client:
@@ -165,7 +243,7 @@ with st.sidebar:
                 st.error(f"Workbook validation failed. Existing dashboard was not changed. Details: {e}")
 
 try:
-    projects, expense_heads, conducted, attended, warnings = parse_workbook(st.session_state.workbook_bytes)
+    projects, expense_heads, conducted, attended, progress, warnings = parse_workbook(st.session_state.workbook_bytes)
 except Exception as e:
     st.error(f"Workbook could not be read: {e}")
     st.stop()
@@ -190,10 +268,10 @@ def kpi(label, value, foot):
     st.markdown(f'<div class="kpi"><div class="kpi-label">{label}</div><div class="kpi-value">{value}</div><div class="kpi-foot">{foot}</div></div>', unsafe_allow_html=True)
 
 k1, k2, k3, k4 = st.columns(4, gap="medium")
-with k1: kpi("SANCTIONED BUDGET", f"₹{total_budget/100000:,.2f} L", "Across all nine projects")
+with k1: kpi("SANCTIONED BUDGET", f"₹{total_budget/100000:,.2f} L", f"Across all {len(projects)} projects")
 with k2: kpi("CUMULATIVE EXPENDITURE", f"₹{total_spent/100000:,.2f} L", "Reported spend to date")
 with k3: kpi("PORTFOLIO UTILIZATION", f"{util:.1%}" if util is not None else "—", "Spend as a share of budget")
-with k4: kpi("PROJECTS IN PORTFOLIO", f"{projects['Project UID'].nunique()} / 9", "UID1 through UID9")
+with k4: kpi("PROJECTS IN PORTFOLIO", f"{projects['Project UID'].nunique()} projects", f"{projects['Project UID'].min()} through {projects['Project UID'].max()}")
 
 st.markdown('<div class="overview-divider"></div>', unsafe_allow_html=True)
 
@@ -225,7 +303,7 @@ if view == "Portfolio overview":
     budget_plot["Series"] = budget_plot["Series"].map({"Budget (₹ lakh)": "Sanctioned budget", "Spent (₹ lakh)": "Cumulative expenditure"})
     fig = px.bar(budget_plot, x="Project UID", y="Amount", color="Series", barmode="group", text_auto=".1f",
                  color_discrete_map={"Sanctioned budget": BLUE, "Cumulative expenditure": GOLD},
-                 category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
+                 category_orders={"Project UID": projects["Project UID"].tolist()})
     fig.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#1D2A3A", size=10))
     fig.update_layout(yaxis_title="₹ lakh", xaxis_title="", bargap=.28, bargroupgap=.08,
                       margin=dict(l=12, r=16, t=22, b=26))
@@ -281,16 +359,40 @@ else:
     st.markdown('<div class="chart-title">Activity delivery across projects</div><div class="chart-sub">Reported activity counts · conducted versus attended</div>', unsafe_allow_html=True)
     cdf = conducted.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities conducted"}) if not conducted.empty else pd.DataFrame(columns=["Project UID", "Activities conducted"])
     adf = attended.groupby("Project UID", as_index=False)["Count"].sum().rename(columns={"Count": "Activities attended"}) if not attended.empty else pd.DataFrame(columns=["Project UID", "Activities attended"])
-    act = pd.DataFrame({"Project UID": [f"UID{i}" for i in range(1,10)]}).merge(cdf, on="Project UID", how="left").merge(adf, on="Project UID", how="left").fillna(0)
+    act = projects[["Project UID"]].copy().merge(cdf, on="Project UID", how="left").merge(adf, on="Project UID", how="left").fillna(0)
     act_long = act.melt(id_vars="Project UID", var_name="Activity type", value_name="Count")
     fig4 = px.bar(act_long, x="Project UID", y="Count", color="Activity type", barmode="group", text_auto=True,
                   color_discrete_map={"Activities conducted": TEAL, "Activities attended": "#8D83B8"},
-                  category_orders={"Project UID": [f"UID{i}" for i in range(1,10)]})
+                  category_orders={"Project UID": projects["Project UID"].tolist()})
     fig4.update_traces(textposition="outside", cliponaxis=False, marker_line_width=0, textfont=dict(color="#1D2A3A", size=11))
     fig4.update_layout(xaxis_title="", yaxis_title="Activity count", bargap=.3,
                        margin=dict(l=16, r=18, t=28, b=28))
     polish(fig4, 470)
     fig4.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig4, use_container_width=True, config=PLOT_CONFIG)
+
+    st.markdown('<div class="chart-title">Research and innovation progress</div><div class="chart-sub">Section 4 · status of research papers, patents, and other reported activities</div>', unsafe_allow_html=True)
+    if not progress.empty:
+        pvt = progress.groupby(["Project UID", "Status"], as_index=False)["Count"].sum()
+        fig5 = px.bar(
+            pvt, x="Project UID", y="Count", color="Status", barmode="stack", text_auto=True,
+            color_discrete_map={
+                "Published / granted": BLUE,
+                "In communication / filed": TEAL,
+                "In progress": GOLD,
+            },
+            category_orders={"Project UID": projects["Project UID"].tolist()},
+        )
+        fig5.update_traces(textposition="inside", insidetextanchor="middle", cliponaxis=False,
+                           textfont=dict(color="white", size=10), marker_line_width=0)
+        fig5.update_layout(xaxis_title="", yaxis_title="Reported items", bargap=.28,
+                           margin=dict(l=16, r=18, t=22, b=28),
+                           legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="left", x=0,
+                                       font=dict(size=9, color="#1D2A3A")))
+        polish(fig5, 390)
+        fig5.update_yaxes(rangemode="tozero")
+        st.plotly_chart(fig5, use_container_width=True, config=PLOT_CONFIG)
+    else:
+        st.info("Section 4 was not found or contains no numeric status counts in this workbook.")
 
 st.markdown(f'<div class="footer-note">ANRF–PAIR portfolio overview · Source workbook: Project Info.xlsx · Cumulative figures</div>', unsafe_allow_html=True)
